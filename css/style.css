@@ -1,0 +1,21 @@
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  line-height: 1.6;
+  background-color: #f8f9fa;
+  color: #212529;
+}
+h1, h2 {
+  color: #007acc;
+}
+code {
+  background: #eee;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+pre {
+  background: #eee;
+  padding: 1em;
+  overflow-x: auto;
+}

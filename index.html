@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Relational Algebra CLI Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Relational Algebra CLI Simulator</h1>
+    <p>This project simulates relational algebra operations via a command-line interface written in Python. It follows SQLite-like syntax and is suitable for educational or prototyping purposes.</p>
+
+    <h2>Supported Operations</h2>
+    <ul>
+        <li><code>CREATE TABLE</code></li>
+        <li><code>INSERT INTO</code></li>
+        <li><code>SELECT</code></li>
+        <li><code>PROJECT</code></li>
+        <li><code>RENAME</code></li>
+        <li><code>UNION</code></li>
+        <li><code>DIFFERENCE</code></li>
+        <li><code>INTERSECT</code></li>
+        <li><code>DIVIDE</code></li>
+        <li><code>JOIN (Natural Join)</code></li>
+        <li><code>SHOW</code>, <code>SCHEMA</code>, <code>USE</code></li>
+    </ul>
+
+    <h2>Example Usage</h2>
+    <pre>
+CREATE TABLE students (id, name, age)
+INSERT INTO students VALUES (1, 'Alice', 20)
+INSERT INTO students VALUES (2, 'Bob', 21)
+SELECT * FROM students WHERE age > 20
+PROJECT name, age FROM students
+    </pre>
+
+    <h2>Code Files</h2>
+    <ul>
+        <li><a href="code/main.py">main.py</a></li>
+        <li><a href="code/unary.py">unary.py</a></li>
+        <li><a href="code/binary.py">binary.py</a></li>
+        <li><a href="code/additional.py">additional.py</a></li>
+        <li><a href="code/io_utils.py">io_utils.py</a></li>
+    </ul>
+
+    <h2>Screenshots</h2>
+    <p>(You can place CLI screenshots inside the <code>img/</code> folder.)</p>
+
+    <footer style="margin-top: 3em; font-size: 0.9em;">
+        Created for demonstration on GitHub Pages.
+    </footer>
+</body>
+</html>
