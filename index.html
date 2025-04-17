@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -32,6 +31,7 @@
       <tr><td>INTERSECT</td><td><code>INTERSECT A, B BY name</code></td></tr>
       <tr><td>DIVIDE</td><td><code>DIVIDE takes BY courses</code></td></tr>
       <tr><td>JOIN</td><td><code>JOIN students, teachers</code></td></tr>
+      <tr><td>SHOW SCHEMA</td><td><code>SHOW SCHEMA students</code></td></tr>
     </tbody>
   </table>
 
@@ -62,7 +62,7 @@ def run_command(cmd: str) -> str:
             name, rest = cmd[12:].split("VALUES", 1)
             name = name.strip()
             values = rest.strip().strip("()").split(",")
-            values = [v.strip().strip("'\"") for v in values]
+            values = [v.strip().strip("'\\\"") for v in values]
             if name not in tables:
                 return f"❌ Table '{name}' does not exist"
             tables[name].loc[len(tables[name])] = values
@@ -122,6 +122,11 @@ def run_command(cmd: str) -> str:
             cols = list(set(df1.columns) - set(df2.columns))
             grouped = df1.groupby(cols).filter(lambda g: df2.merge(g, how='left', on=df2.columns.tolist()).dropna().shape[0] == len(df2))
             return str(grouped[cols].drop_duplicates().reset_index(drop=True))
+        elif cmd.upper().startswith("SHOW SCHEMA"):
+            name = cmd[12:].strip()
+            if name not in tables:
+                return f"❌ Table '{name}' does not exist"
+            return f"📄 Schema of '{name}': " + ", ".join(tables[name].columns)
         else:
             return "❌ Unsupported command"
     except Exception as e:
