@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -26,7 +25,40 @@
     async function loadPyodideAndPackages() {
       const pyodide = await loadPyodide();
       await pyodide.loadPackage(["pandas"]);
-      const code = await (await fetch("cli.py")).text();
+      const code = `
+import pandas as pd
+
+tables = {}
+
+def run_command(cmd: str) -> str:
+    global tables
+    try:
+        cmd = cmd.strip()
+        if cmd.upper().startswith("CREATE TABLE"):
+            name, cols = cmd[13:].split("(", 1)
+            name = name.strip()
+            cols = [c.strip() for c in cols.strip(")").split(",")]
+            tables[name] = pd.DataFrame(columns=cols)
+            return f"✅ Created table '{name}' with columns: {cols}"
+        elif cmd.upper().startswith("INSERT INTO"):
+            name, rest = cmd[12:].split("VALUES", 1)
+            name = name.strip()
+            values = rest.strip().strip("()").split(",")
+            values = [v.strip().strip("'\\\"") for v in values]
+            if name not in tables:
+                return f"❌ Table '{name}' does not exist"
+            tables[name].loc[len(tables[name])] = values
+            return f"✅ Inserted into '{name}': {values}"
+        elif cmd.upper().startswith("SELECT * FROM"):
+            name = cmd[14:].strip()
+            if name not in tables:
+                return f"❌ Table '{name}' does not exist"
+            return str(tables[name])
+        else:
+            return "❌ Unsupported command"
+    except Exception as e:
+        return f"❌ Error: {e}"
+`;
       pyodide.runPython(code);
       window.pyodide = pyodide;
       pyodideReady = true;
@@ -37,7 +69,7 @@
         document.getElementById("output").textContent = "Pyodide is still loading...";
         return;
       }
-      const userInput = document.getElementById("input").value.replaceAll("'", "\'");
+      const userInput = document.getElementById("input").value.replaceAll("'", "\\'");
       const script = `run_command('${userInput}')`;
       try {
         const result = await pyodide.runPythonAsync(script);
