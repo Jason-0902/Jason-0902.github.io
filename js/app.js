@@ -15,8 +15,8 @@ async function runPython() {
     return;
   }
 
-  const userInput = document.getElementById("input").value.replaceAll("'", "\\'");
-  const script = `run_command('${userInput}')`;
+  const userInput = document.getElementById("input").value;
+  const script = `run_command(${JSON.stringify(userInput)})`;
 
   try {
     const result = await pyodide.runPythonAsync(script);
@@ -25,9 +25,9 @@ async function runPython() {
     document.getElementById("output").textContent = "❌ Error: " + err;
   }
 
-  // ✅ 無論成功或錯誤都清空輸入
   document.getElementById("input").value = "";
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("input").addEventListener("keydown", function (e) {
