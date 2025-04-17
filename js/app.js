@@ -14,17 +14,20 @@ async function runPython() {
     document.getElementById("output").textContent = "⏳ Pyodide is still loading...";
     return;
   }
+
   const userInput = document.getElementById("input").value.replaceAll("'", "\\'");
   const script = `run_command('${userInput}')`;
+
   try {
     const result = await pyodide.runPythonAsync(script);
     document.getElementById("output").textContent = result;
+    document.getElementById("input").value = "";  // ✅ 自動清空輸入欄
   } catch (err) {
     document.getElementById("output").textContent = "❌ Error: " + err;
   }
 }
 
-// ⌨️ Enter 鍵觸發查詢（Shift+Enter 換行）
+// ⌨️ Enter 送出指令（Shift+Enter 換行）
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("input").addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {

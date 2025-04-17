@@ -19,23 +19,14 @@
 
   <h2>📘 Supported Commands</h2>
   <ul>
-    <li>
-      <strong>CREATE TABLE</strong><br>
-      <code>CREATE TABLE table_name (column1, column2)</code><br>
-      👉 Create a new table with specified columns.
-    </li>
-    <li>
-      <strong>INSERT INTO</strong><br>
-      <code>INSERT INTO table_name VALUES (value1, value2)</code><br>
-      👉 Insert one row of values into the specified table.
-    </li>
-    <li>
-      <strong>SELECT *</strong><br>
-      <code>SELECT * FROM table_name</code><br>
-      👉 Display all rows from the table.
-    </li>
+    <li><strong>CREATE TABLE</strong><br>
+        <code>CREATE TABLE students (id, name)</code></li>
+    <li><strong>INSERT INTO</strong><br>
+        <code>INSERT INTO students VALUES (1, 'Alice')</code></li>
+    <li><strong>SELECT *</strong><br>
+        <code>SELECT * FROM students</code></li>
   </ul>
-  <p><strong>Note:</strong> Commands are case-insensitive. Use <code>Enter</code> to run; <code>Shift+Enter</code> for new line.</p>
+  <p><strong>Note:</strong> Use <code>Enter</code> to run; <code>Shift+Enter</code> for new line.</p>
 
   <h2>🧪 Try it below</h2>
   <textarea id="input" placeholder="e.g. CREATE TABLE students (id, name)"></textarea>
@@ -43,7 +34,7 @@
   <button onclick="runPython()">Execute</button>
   <div id="output">Output will appear here...</div>
 
-  <!-- Python code safely embedded -->
+  <!-- Python code -->
   <script id="pycode" type="text/plain">
 import pandas as pd
 
