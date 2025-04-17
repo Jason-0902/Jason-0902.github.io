@@ -10,17 +10,40 @@
     textarea { width: 100%; height: 100px; font-family: monospace; }
     #output { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
     button { padding: 10px 20px; margin-top: 10px; }
+    h2 { color: #007acc; margin-top: 2em; }
+    code { background: #eee; padding: 2px 4px; border-radius: 4px; }
   </style>
 </head>
 <body>
   <h1>Relational Algebra CLI Simulator (Pyodide)</h1>
-  <p>Enter your command below:</p>
+
+  <h2>📘 Supported Commands</h2>
+  <ul>
+    <li>
+      <strong>CREATE TABLE</strong><br>
+      <code>CREATE TABLE table_name (column1, column2)</code><br>
+      👉 Create a new table with specified columns.
+    </li>
+    <li>
+      <strong>INSERT INTO</strong><br>
+      <code>INSERT INTO table_name VALUES (value1, value2)</code><br>
+      👉 Insert one row of values into the specified table.
+    </li>
+    <li>
+      <strong>SELECT *</strong><br>
+      <code>SELECT * FROM table_name</code><br>
+      👉 Display all rows from the table.
+    </li>
+  </ul>
+  <p><strong>Note:</strong> Commands are case-insensitive. Use <code>Enter</code> to run; <code>Shift+Enter</code> for new line.</p>
+
+  <h2>🧪 Try it below</h2>
   <textarea id="input" placeholder="e.g. CREATE TABLE students (id, name)"></textarea>
   <br />
   <button onclick="runPython()">Execute</button>
   <div id="output">Output will appear here...</div>
 
-  <!-- Python code safely embedded as plain text -->
+  <!-- Python code safely embedded -->
   <script id="pycode" type="text/plain">
 import pandas as pd
 
