@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
   <title>Relational Algebra CLI (Web)</title>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
-  <script defer src="js/app.js"></script>
+  <script defer src="app.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
     textarea { width: 100%; height: 100px; font-family: monospace; }
@@ -18,23 +19,30 @@
   <h1>Relational Algebra CLI Simulator (Pyodide)</h1>
 
   <h2>📘 Supported Commands</h2>
-  <ul>
-    <li><strong>CREATE TABLE</strong><br>
-        <code>CREATE TABLE students (id, name)</code></li>
-    <li><strong>INSERT INTO</strong><br>
-        <code>INSERT INTO students VALUES (1, 'Alice')</code></li>
-    <li><strong>SELECT *</strong><br>
-        <code>SELECT * FROM students</code></li>
-  </ul>
+  <table border="1" cellpadding="6" style="border-collapse: collapse; background: #fff;">
+    <thead><tr><th>Command</th><th>Syntax Example</th></tr></thead>
+    <tbody>
+      <tr><td>CREATE TABLE</td><td><code>CREATE TABLE students (id, name)</code></td></tr>
+      <tr><td>INSERT INTO</td><td><code>INSERT INTO students VALUES (1, 'Alice')</code></td></tr>
+      <tr><td>SELECT</td><td><code>SELECT * FROM students</code></td></tr>
+      <tr><td>PROJECT</td><td><code>PROJECT name, id FROM students</code></td></tr>
+      <tr><td>RENAME</td><td><code>RENAME name TO student_name IN students</code></td></tr>
+      <tr><td>UNION</td><td><code>UNION students1, students2 BY id, name</code></td></tr>
+      <tr><td>DIFFERENCE</td><td><code>DIFFERENCE students1, alumni BY id</code></td></tr>
+      <tr><td>INTERSECT</td><td><code>INTERSECT A, B BY name</code></td></tr>
+      <tr><td>DIVIDE</td><td><code>DIVIDE takes BY courses</code></td></tr>
+      <tr><td>JOIN</td><td><code>JOIN students, teachers</code></td></tr>
+    </tbody>
+  </table>
+
   <p><strong>Note:</strong> Use <code>Enter</code> to run; <code>Shift+Enter</code> for new line.</p>
 
   <h2>🧪 Try it below</h2>
-  <textarea id="input" placeholder="e.g. CREATE TABLE students (id, name)"></textarea>
+  <textarea id="input" placeholder="Type your command here..."></textarea>
   <br />
   <button onclick="runPython()">Execute</button>
   <div id="output">Output will appear here...</div>
 
-  <!-- Python code -->
   <script id="pycode" type="text/plain">
 import pandas as pd
 
@@ -54,7 +62,7 @@ def run_command(cmd: str) -> str:
             name, rest = cmd[12:].split("VALUES", 1)
             name = name.strip()
             values = rest.strip().strip("()").split(",")
-            values = [v.strip().strip("'\\\"") for v in values]
+            values = [v.strip().strip("'\"") for v in values]
             if name not in tables:
                 return f"❌ Table '{name}' does not exist"
             tables[name].loc[len(tables[name])] = values
@@ -64,6 +72,56 @@ def run_command(cmd: str) -> str:
             if name not in tables:
                 return f"❌ Table '{name}' does not exist"
             return str(tables[name])
+        elif cmd.upper().startswith("PROJECT"):
+            rest = cmd[7:].strip()
+            cols_part, tbl = rest.split("FROM")
+            cols = [c.strip() for c in cols_part.strip().split(",")]
+            tbl = tbl.strip()
+            if tbl not in tables:
+                return f"❌ Table '{tbl}' does not exist"
+            return str(tables[tbl][cols])
+        elif cmd.upper().startswith("RENAME"):
+            parts = cmd[7:].split("TO")
+            old = parts[0].strip()
+            new, rest = parts[1].split("IN")
+            new = new.strip()
+            tbl = rest.strip()
+            if tbl not in tables or old not in tables[tbl].columns:
+                return f"❌ Table or column not found"
+            tables[tbl] = tables[tbl].rename(columns={old: new})
+            return f"✅ Renamed '{old}' to '{new}' in '{tbl}'"
+        elif cmd.upper().startswith("JOIN"):
+            a, b = cmd[5:].split(",")
+            a, b = a.strip(), b.strip()
+            if a not in tables or b not in tables:
+                return f"❌ Table not found"
+            return str(pd.merge(tables[a], tables[b], on=list(set(tables[a].columns) & set(tables[b].columns))))
+        elif cmd.upper().startswith("UNION"):
+            args = cmd[6:].split("BY")
+            a_b, cols = args[0], args[1]
+            a, b = a_b.split(",")
+            a, b = a.strip(), b.strip()
+            cols = [c.strip() for c in cols.strip().split(",")]
+            return str(pd.concat([tables[a][cols], tables[b][cols]]).drop_duplicates().reset_index(drop=True))
+        elif cmd.upper().startswith("DIFFERENCE"):
+            args = cmd[10:].split("BY")
+            a, b = args[0].split(",")
+            cols = [c.strip() for c in args[1].strip().split(",")]
+            df1 = tables[a.strip()][cols]
+            df2 = tables[b.strip()][cols]
+            return str(pd.merge(df1, df2, how='outer', indicator=True).query("_merge == 'left_only'").drop("_merge", axis=1))
+        elif cmd.upper().startswith("INTERSECT"):
+            args = cmd[9:].split("BY")
+            a, b = args[0].split(",")
+            cols = [c.strip() for c in args[1].strip().split(",")]
+            return str(pd.merge(tables[a.strip()][cols], tables[b.strip()][cols]))
+        elif cmd.upper().startswith("DIVIDE"):
+            a, b = cmd[6:].split("BY")
+            a, b = a.strip(), b.strip()
+            df1, df2 = tables[a], tables[b]
+            cols = list(set(df1.columns) - set(df2.columns))
+            grouped = df1.groupby(cols).filter(lambda g: df2.merge(g, how='left', on=df2.columns.tolist()).dropna().shape[0] == len(df2))
+            return str(grouped[cols].drop_duplicates().reset_index(drop=True))
         else:
             return "❌ Unsupported command"
     except Exception as e:
