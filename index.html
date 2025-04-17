@@ -2,52 +2,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Relational Algebra CLI Simulator</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8" />
+  <title>Relational Algebra CLI (Web)</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+    textarea { width: 100%; height: 100px; }
+    #output { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+  </style>
 </head>
 <body>
-    <h1>Relational Algebra CLI Simulator</h1>
-    <p>This project simulates relational algebra operations via a command-line interface written in Python. It follows SQLite-like syntax and is suitable for educational or prototyping purposes.</p>
+  <h1>Relational Algebra CLI Simulator (Pyodide)</h1>
+  <p>Enter your command below (e.g. <code>CREATE TABLE students (id, name)</code>):</p>
+  <textarea id="input" placeholder="Enter your relational algebra command here..."></textarea>
+  <br />
+  <button onclick="runPython()">Execute</button>
+  <div id="output">Output will appear here...</div>
 
-    <h2>Supported Operations</h2>
-    <ul>
-        <li><code>CREATE TABLE</code></li>
-        <li><code>INSERT INTO</code></li>
-        <li><code>SELECT</code></li>
-        <li><code>PROJECT</code></li>
-        <li><code>RENAME</code></li>
-        <li><code>UNION</code></li>
-        <li><code>DIFFERENCE</code></li>
-        <li><code>INTERSECT</code></li>
-        <li><code>DIVIDE</code></li>
-        <li><code>JOIN (Natural Join)</code></li>
-        <li><code>SHOW</code>, <code>SCHEMA</code>, <code>USE</code></li>
-    </ul>
+  <script>
+    let pyodideReady = false;
 
-    <h2>Example Usage</h2>
-    <pre>
-CREATE TABLE students (id, name, age)
-INSERT INTO students VALUES (1, 'Alice', 20)
-INSERT INTO students VALUES (2, 'Bob', 21)
-SELECT * FROM students WHERE age > 20
-PROJECT name, age FROM students
-    </pre>
+    async function loadPyodideAndPackages() {
+      const pyodide = await loadPyodide();
+      await pyodide.loadPackage(["pandas"]);
+      const code = await (await fetch("cli.py")).text();
+      pyodide.runPython(code);
+      window.pyodide = pyodide;
+      pyodideReady = true;
+    }
 
-    <h2>Code Files</h2>
-    <ul>
-        <li><a href="code/main.py">main.py</a></li>
-        <li><a href="code/unary.py">unary.py</a></li>
-        <li><a href="code/binary.py">binary.py</a></li>
-        <li><a href="code/additional.py">additional.py</a></li>
-        <li><a href="code/io_utils.py">io_utils.py</a></li>
-    </ul>
+    async function runPython() {
+      if (!pyodideReady) {
+        document.getElementById("output").textContent = "Pyodide is still loading...";
+        return;
+      }
+      const userInput = document.getElementById("input").value.replaceAll("'", "\'");
+      const script = `run_command('${userInput}')`;
+      try {
+        const result = await pyodide.runPythonAsync(script);
+        document.getElementById("output").textContent = result;
+      } catch (err) {
+        document.getElementById("output").textContent = "Error: " + err;
+      }
+    }
 
-    <h2>Screenshots</h2>
-    <p>(You can place CLI screenshots inside the <code>img/</code> folder.)</p>
-
-    <footer style="margin-top: 3em; font-size: 0.9em;">
-        Created for demonstration on GitHub Pages.
-    </footer>
+    loadPyodideAndPackages();
+  </script>
 </body>
 </html>
