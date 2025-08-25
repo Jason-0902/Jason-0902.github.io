@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+    let timerId;
+
     const modeBtn = document.getElementById("dark-toggle");
     const body = document.body;
     const savedMode = localStorage.getItem("dark-mode") === "true";
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         navLinks.forEach(a => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
         views.forEach(v => v.classList.toggle("active", v.id === id));
         clearTimeout(timerId);
+
         if (id === "home") {
             setTimeout(startTypewriter, 100);
         }
@@ -44,7 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "熱衷於學習 Rust、Ghidra、x86-64 組語",
       "未來想挑戰系統底層與資安領域"
     ];
-    let pIdx = 0, cIdx = 0, deleting = false, timerId;
+
+    let pIdx = 0, cIdx = 0, deleting = false; 
     const typer = document.getElementById("typewriter");
 
     function typeStep() {
