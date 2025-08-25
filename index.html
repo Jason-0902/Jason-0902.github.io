@@ -4,68 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jason Lin - 開發者 & CTF 玩家</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css"> 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
 </head>
 <body class="dark-mode">
 
-    <div class="background-gradient"></div>
+    <header class="top-header">
+        <a href="#home" class="nav-link logo">Jason's Blog</a>
+        <nav class="navigation">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#blog" class="nav-link">Blog</a>
+            <a href="#cv" class="nav-link">CV</a>
+            <button id="dark-toggle">🌙</button>
+        </nav>
+    </header>
 
-    <div class="main-container">
-        <aside class="sidebar">
-            <div class="profile">
-                <img src="assets/github_dog.jpg" alt="Profile Picture" class="profile-pic">
-                <h1>Jason Lin</h1>
-                <p>Developer & Student</p>
-            </div>
-            <nav class="navigation">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#blog" class="nav-link">Blog</a>
-                <a href="#cv" class="nav-link">CV</a>
-            </nav>
-            <div class="sidebar-footer">
-                <button id="dark-toggle">☀️</button>
-                <div class="social-links">
-                    <a href="https://github.com/jason-0902" target="_blank">GitHub</a>
+    <main class="content">
+        <section id="home" class="view active">
+            <div class="hero-content">
+                <h1>jason.io</h1>
+                <div id="typewriter-container">
+                    <span id="typewriter"></span><span class="cursor">|</span>
                 </div>
             </div>
-        </aside>
+        </section>
 
-        <main class="content">
-            <section id="home" class="view active">
-                <div class="home-content">
-                    <h2>你好，我是 Jason</h2>
-                    <div id="typewriter-container">
-                        <span id="typewriter"></span><span class="cursor">|</span>
-                    </div>
+        <section id="blog" class="view">
+            <h2>Blog Posts</h2>
+            <div id="blog-list">
                 </div>
-            </section>
+        </section>
+        
+        <section id="cv" class="view">
+            <h2>Curriculum Vitae</h2>
+            <div class="cv-content">
+                <p>在這裡，你可以用簡潔的 HTML 和 CSS 來展示你的經歷。</p>
+                <h3>技能</h3>
+                <ul>
+                    <li>Rust, Python, C/C++</li>
+                    <li>Reverse Engineering, System Programming</li>
+                    <li>Git, Docker</li>
+                </ul>
+            </div>
+        </section>
 
-            <section id="blog" class="view">
-                <h2>Blog Posts</h2>
-                <div id="blog-list">
-                    </div>
-            </section>
-            
-            <section id="cv" class="view">
-                <h2>Curriculum Vitae</h2>
-                <div class="cv-content">
-                    <p>你可以在這裡嵌入你的 PDF 履歷，或直接用 HTML 撰寫。</p>
+        <section id="blog-post" class="view">
+            <button id="back-to-blog">&larr; 返回列表</button>
+            <h2 id="post-title"></h2>
+            <p id="post-meta"></p>
+            <hr>
+            <div id="post-content">
                 </div>
-            </section>
+        </section>
+    </main>
 
-            <section id="blog-post" class="view">
-                <button id="back-to-blog">&larr; 返回列表</button>
-                <h2 id="post-title"></h2>
-                <p id="post-meta"></p>
-                <hr>
-                <div id="post-content">
-                    </div>
-            </section>
-        </main>
-    </div>
+    <footer class="social-footer">
+        <a href="https://github.com/jason-0902" target="_blank" title="GitHub">
+            GH
+        </a>
+        </footer>
 
     <script src="js/main.js"></script>
 </body>
