@@ -83,35 +83,191 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    fetch('posts/posts.json')
-        .then(res => res.json())
-        .then(blogPosts => {
-            const blogListEl = document.getElementById('blog-list');
-            if (!blogListEl) return;
-            blogListEl.innerHTML = '';
-            blogPosts.forEach(post => {
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'blog-item';
-                a.innerHTML = `<h3>${post.title}</h3><div class="meta">${post.readingTime} · ${post.date}</div>`;
-                a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
-                blogListEl.appendChild(a);
-            });
-        });
+    if (window.marked) {
+        window.marked.setOptions({ mangle: false, headerIds: true, breaks: true });
+    }
 
-    function loadPost(post) {
+    const repoConfig = {
+        owner: 'Jason-0902',
+        repo: 'Pwn-college-writeup',
+        contentDir: '' // set to a folder path (e.g. 'notes') if posts live in a subfolder
+    };
+    const blogListEl = document.getElementById('blog-list');
+    let cachedPosts = [];
+
+    initBlog();
+
+    async function initBlog() {
+        if (!blogListEl) return;
+        blogListEl.innerHTML = '<p>載入 GitHub 文章中...</p>';
+        try {
+            cachedPosts = await fetchPostsFromGitHub();
+            renderPostList(cachedPosts);
+        } catch (err) {
+            console.error('Failed to load posts from GitHub', err);
+            blogListEl.innerHTML = '<p>GitHub 文章載入失敗，改用預設列表。</p>';
+            fallbackPostsFromJson();
+        }
+    }
+
+    function renderPostList(posts) {
+        if (!blogListEl) return;
+        blogListEl.innerHTML = '';
+        posts.forEach(post => {
+            const a = document.createElement('a');
+            a.href = '#';
+            a.className = 'blog-item';
+            const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
+            a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
+            a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
+            blogListEl.appendChild(a);
+        });
+    }
+
+    async function fetchPostsFromGitHub() {
+        const branch = await fetchDefaultBranch();
+        const tree = await fetchRepoTree(branch);
+        const markdownFiles = tree
+            .filter(item => item.type === 'blob' && item.path.endsWith('.md'))
+            .filter(item => item.path.toLowerCase() !== 'readme.md')
+            .filter(item => repoConfig.contentDir ? item.path.startsWith(`${repoConfig.contentDir}/`) : true);
+
+        if (markdownFiles.length === 0) {
+            throw new Error('No markdown files found in repository.');
+        }
+
+        const posts = [];
+        for (const file of markdownFiles) {
+            const rawUrl = buildRawUrl(branch, file.path);
+            let mdText = '';
+            let meta = {};
+            try {
+                mdText = await fetch(rawUrl).then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.text();
+                });
+                meta = parseFrontMatter(mdText);
+            } catch (err) {
+                console.warn(`Failed to fetch ${file.path}:`, err);
+            }
+
+            const title = meta.title || extractTitleFromMd(mdText) || formatTitleFromPath(file.path);
+            const date = meta.date || deriveDateFromPath(file.path);
+            const readingTime = mdText ? estimateReadingTime(mdText) : 'Open to read';
+
+            posts.push({ title, date, readingTime, rawUrl, path: file.path, branch });
+        }
+
+        return posts.sort((a, b) => {
+            if (a.date && b.date) return new Date(b.date) - new Date(a.date);
+            return a.title.localeCompare(b.title);
+        });
+    }
+
+    async function fetchDefaultBranch() {
+        const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}`);
+        if (!res.ok) throw new Error(`Repo metadata failed: ${res.status}`);
+        const data = await res.json();
+        return data.default_branch || 'main';
+    }
+
+    async function fetchRepoTree(branch) {
+        const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/git/trees/${branch}?recursive=1`);
+        if (!res.ok) throw new Error(`Repo tree failed: ${res.status}`);
+        const data = await res.json();
+        return data.tree || [];
+    }
+
+    function buildRawUrl(branch, path) {
+        return `https://raw.githubusercontent.com/${repoConfig.owner}/${repoConfig.repo}/${branch}/${path}`;
+    }
+
+    function formatTitleFromPath(path) {
+        const name = path.split('/').pop().replace(/\.md$/i, '');
+        const words = name.replace(/[_-]+/g, ' ').trim();
+        return words.charAt(0).toUpperCase() + words.slice(1);
+    }
+
+    function deriveDateFromPath(path) {
+        const match = path.match(/(20\d{2}-\d{2}-\d{2})/);
+        return match ? match[1] : '';
+    }
+
+    function parseFrontMatter(mdText) {
+        if (!mdText.startsWith('---')) return {};
+        const end = mdText.indexOf('---', 3);
+        if (end === -1) return {};
+        const block = mdText.slice(3, end).trim();
+        return block.split('\n').reduce((acc, line) => {
+            const [key, ...rest] = line.split(':');
+            if (!key || rest.length === 0) return acc;
+            acc[key.trim()] = rest.join(':').trim();
+            return acc;
+        }, {});
+    }
+
+    function extractTitleFromMd(mdText) {
+        const heading = mdText.match(/^#\s+(.+)/m);
+        return heading ? heading[1].trim() : '';
+    }
+
+    function estimateReadingTime(mdText) {
+        const words = mdText.trim().split(/\s+/).filter(Boolean).length;
+        const minutes = Math.max(1, Math.round(words / 200));
+        return `${minutes} min read`;
+    }
+
+    async function loadPost(post) {
         document.getElementById('post-title').textContent = post.title;
-        document.getElementById('post-meta').textContent = `${post.readingTime} · Published: ${post.date}`;
         const contentEl = document.getElementById('post-content');
-        contentEl.innerHTML = '';
-        if (post.hackmdUrl) {
+        const metaEl = document.getElementById('post-meta');
+        contentEl.innerHTML = '<p>載入文章中...</p>';
+        metaEl.textContent = '';
+
+        if (post.rawUrl) {
+            try {
+                const mdText = await fetch(post.rawUrl).then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.text();
+                });
+                const html = window.marked ? window.marked.parse(mdText) : `<pre>${escapeHtml(mdText)}</pre>`;
+                contentEl.innerHTML = html;
+                metaEl.textContent = `${estimateReadingTime(mdText)}${post.date ? ` · Published: ${post.date}` : ''}`;
+            } catch (err) {
+                console.error('Failed to load post content', err);
+                contentEl.innerHTML = '<p>載入文章內容失敗。</p>';
+            }
+        } else if (post.hackmdUrl) {
             const iframe = document.createElement('iframe');
             iframe.src = post.hackmdUrl;
+            contentEl.innerHTML = '';
             contentEl.appendChild(iframe);
+            metaEl.textContent = post.date ? `Published: ${post.date}` : '';
         } else {
             contentEl.innerHTML = '<p>文章連結不存在。</p>';
         }
+
         switchView('blog-post');
+    }
+
+    function escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function fallbackPostsFromJson() {
+        fetch('posts/posts.json')
+            .then(res => res.json())
+            .then(blogPosts => {
+                cachedPosts = blogPosts;
+                renderPostList(blogPosts);
+            })
+            .catch(err => {
+                console.error('Fallback posts load failed', err);
+                if (blogListEl) blogListEl.innerHTML = '<p>沒有可用的文章。</p>';
+            });
     }
     
     document.getElementById('back-to-blog').addEventListener('click', (e) => {

@@ -226,6 +226,40 @@ body.light-mode #back-to-blog:hover {
 }
 body.light-mode #post-content iframe { border-color: var(--border-light); }
 
+#post-content {
+    line-height: 1.7;
+    font-size: 1rem;
+}
+#post-content h1, #post-content h2, #post-content h3,
+#post-content h4, #post-content h5, #post-content h6 {
+    margin: 24px 0 12px;
+    color: inherit;
+}
+#post-content p { margin: 12px 0; }
+#post-content ul, #post-content ol { padding-left: 24px; }
+#post-content blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+    margin: 12px 0;
+    color: var(--text-secondary-dark);
+}
+body.light-mode #post-content blockquote { color: var(--text-secondary-light); }
+#post-content code {
+    font-family: var(--font-mono);
+    background: rgba(255,255,255,0.05);
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+body.light-mode #post-content code { background: rgba(0,0,0,0.05); }
+#post-content pre {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+    padding: 14px;
+    overflow-x: auto;
+}
+body.light-mode #post-content pre { background: rgba(0,0,0,0.05); border-color: var(--border-light); }
+
 
 /* --- 右下角社群連結 --- */
 .social-footer {
