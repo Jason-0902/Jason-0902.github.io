@@ -145,8 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
         blogListEl.innerHTML = '';
 
         const breadcrumb = document.createElement('div');
-        breadcrumb.className = 'meta';
-        breadcrumb.textContent = path || '/';
+        breadcrumb.className = 'browser-breadcrumb meta';
+        breadcrumb.textContent = path ? `/${path}` : '/';
         blogListEl.appendChild(breadcrumb);
 
         if (path) {
@@ -159,25 +159,39 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const subdirs = getImmediateSubdirs(path);
-        subdirs.forEach(dir => {
-            const a = document.createElement('a');
-            a.href = '#';
-            a.className = 'blog-item';
-            a.innerHTML = `<h3>📁 ${dir.split('/').pop()}</h3><div class="meta">${dir}</div>`;
-            a.addEventListener('click', e => { e.preventDefault(); navigateTo(dir); });
-            blogListEl.appendChild(a);
-        });
+        if (subdirs.length) {
+            const folderLabel = document.createElement('div');
+            folderLabel.className = 'browser-section';
+            folderLabel.textContent = 'Folders';
+            blogListEl.appendChild(folderLabel);
+
+            subdirs.forEach(dir => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'blog-item';
+                a.innerHTML = `<h3>📁 ${dir.split('/').pop()}</h3><div class="meta">${dir}</div>`;
+                a.addEventListener('click', e => { e.preventDefault(); navigateTo(dir); });
+                blogListEl.appendChild(a);
+            });
+        }
 
         const files = cachedPosts.filter(p => getDirname(p.path) === path);
-        files.forEach(post => {
-            const a = document.createElement('a');
-            a.href = '#';
-            a.className = 'blog-item';
-            const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
-            a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
-            a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
-            blogListEl.appendChild(a);
-        });
+        if (files.length) {
+            const fileLabel = document.createElement('div');
+            fileLabel.className = 'browser-section';
+            fileLabel.textContent = path ? `Files in /${path}` : 'Files in /';
+            blogListEl.appendChild(fileLabel);
+
+            files.forEach(post => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.className = 'blog-item';
+                const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
+                a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
+                a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
+                blogListEl.appendChild(a);
+            });
+        }
 
         if (!subdirs.length && !files.length) {
             const empty = document.createElement('p');

@@ -260,6 +260,19 @@ body.light-mode #post-content code { background: rgba(0,0,0,0.05); }
 }
 body.light-mode #post-content pre { background: rgba(0,0,0,0.05); border-color: var(--border-light); }
 
+.browser-breadcrumb {
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+}
+.browser-section {
+    margin: 18px 0 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+body.light-mode .browser-section { color: var(--text-secondary-light); }
+
 
 /* --- 右下角社群連結 --- */
 .social-footer {
