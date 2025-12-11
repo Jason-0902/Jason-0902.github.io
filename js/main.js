@@ -94,6 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const blogListEl = document.getElementById('blog-list');
     let cachedPosts = [];
+    const postsByPath = new Map();
+    const dirSet = new Set();
+    let currentPath = repoConfig.contentDir;
 
     initBlog();
 
@@ -102,12 +105,25 @@ document.addEventListener("DOMContentLoaded", () => {
         blogListEl.innerHTML = '<p>載入 GitHub 文章中...</p>';
         try {
             cachedPosts = await fetchPostsFromGitHub();
-            renderPostList(cachedPosts);
+            cachedPosts.forEach(p => postsByPath.set(p.path, p));
+            buildDirSetFromPosts(cachedPosts);
+            renderBrowser(currentPath);
         } catch (err) {
             console.error('Failed to load posts from GitHub', err);
             blogListEl.innerHTML = '<p>GitHub 文章載入失敗，改用預設列表。</p>';
             fallbackPostsFromJson();
         }
+    }
+
+    function buildDirSetFromPosts(posts) {
+        dirSet.clear();
+        posts.forEach(post => {
+            let dir = getDirname(post.path);
+            while (dir) {
+                dirSet.add(dir);
+                dir = getDirname(dir);
+            }
+        });
     }
 
     function renderPostList(posts) {
@@ -122,6 +138,73 @@ document.addEventListener("DOMContentLoaded", () => {
             a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
             blogListEl.appendChild(a);
         });
+    }
+
+    function renderBrowser(path) {
+        if (!blogListEl) return;
+        blogListEl.innerHTML = '';
+
+        const breadcrumb = document.createElement('div');
+        breadcrumb.className = 'meta';
+        breadcrumb.textContent = path || '/';
+        blogListEl.appendChild(breadcrumb);
+
+        if (path) {
+            const up = document.createElement('a');
+            up.href = '#';
+            up.className = 'blog-item';
+            up.innerHTML = `<h3>..</h3><div class="meta">返回上一層</div>`;
+            up.addEventListener('click', e => { e.preventDefault(); navigateUp(); });
+            blogListEl.appendChild(up);
+        }
+
+        const subdirs = getImmediateSubdirs(path);
+        subdirs.forEach(dir => {
+            const a = document.createElement('a');
+            a.href = '#';
+            a.className = 'blog-item';
+            a.innerHTML = `<h3>📁 ${dir.split('/').pop()}</h3><div class="meta">${dir}</div>`;
+            a.addEventListener('click', e => { e.preventDefault(); navigateTo(dir); });
+            blogListEl.appendChild(a);
+        });
+
+        const files = cachedPosts.filter(p => getDirname(p.path) === path);
+        files.forEach(post => {
+            const a = document.createElement('a');
+            a.href = '#';
+            a.className = 'blog-item';
+            const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
+            a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
+            a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
+            blogListEl.appendChild(a);
+        });
+
+        if (!subdirs.length && !files.length) {
+            const empty = document.createElement('p');
+            empty.textContent = '這個資料夾沒有 Markdown 檔案。';
+            blogListEl.appendChild(empty);
+        }
+    }
+
+    function navigateTo(dir) {
+        currentPath = dir;
+        renderBrowser(currentPath);
+    }
+
+    function navigateUp() {
+        currentPath = getDirname(currentPath);
+        renderBrowser(currentPath);
+    }
+
+    function getImmediateSubdirs(path) {
+        const prefix = path ? `${path}/` : '';
+        const dirs = [];
+        dirSet.forEach(dir => {
+            if (!dir.startsWith(prefix)) return;
+            const rest = dir.slice(prefix.length);
+            if (rest && !rest.includes('/')) dirs.push(dir);
+        });
+        return dirs.sort();
     }
 
     async function fetchPostsFromGitHub() {
@@ -186,6 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const name = path.split('/').pop().replace(/\.md$/i, '');
         const words = name.replace(/[_-]+/g, ' ').trim();
         return words.charAt(0).toUpperCase() + words.slice(1);
+    }
+
+    function getDirname(path) {
+        const parts = path.split('/');
+        parts.pop();
+        return parts.join('/');
     }
 
     function deriveDateFromPath(path) {
