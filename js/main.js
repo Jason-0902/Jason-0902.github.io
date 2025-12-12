@@ -92,13 +92,20 @@ document.addEventListener("DOMContentLoaded", () => {
         repo: 'Pwn-college-writeup',
         contentDir: '' // set to a folder path (e.g. 'notes') if posts live in a subfolder
     };
+    const projectConfig = {
+        username: 'Jason-0902',
+        featured: ['Pwn-college-writeup'], // list repos you want pinned to the top
+        limit: 6
+    };
     const blogListEl = document.getElementById('blog-list');
+    const projectGrid = document.getElementById('project-grid');
     let cachedPosts = [];
     const postsByPath = new Map();
     const dirSet = new Set();
     let currentPath = repoConfig.contentDir;
 
     initBlog();
+    initProjects();
 
     async function initBlog() {
         if (!blogListEl) return;
@@ -371,6 +378,122 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error('Fallback posts load failed', err);
                 if (blogListEl) blogListEl.innerHTML = '<p>沒有可用的文章。</p>';
             });
+    }
+
+    async function initProjects() {
+        if (!projectGrid) return;
+        projectGrid.innerHTML = '<p>Loading GitHub projects...</p>';
+        try {
+            const repos = await fetchGithubRepos();
+            if (!repos.length) {
+                projectGrid.innerHTML = '<p>No public repositories found.</p>';
+                return;
+            }
+            renderProjects(repos);
+        } catch (err) {
+            console.error('Failed to load projects from GitHub', err);
+            projectGrid.innerHTML = '<p>GitHub projects 載入失敗。</p>';
+        }
+    }
+
+    async function fetchGithubRepos() {
+        const res = await fetch(`https://api.github.com/users/${projectConfig.username}/repos?per_page=100`);
+        if (!res.ok) throw new Error(`GitHub repos failed: ${res.status}`);
+        const data = await res.json();
+        const all = data.filter(r => !r.fork);
+        const chosen = [];
+        const repoMap = new Map(all.map(r => [r.name.toLowerCase(), r]));
+
+        (projectConfig.featured || []).forEach(name => {
+            const repo = repoMap.get(name.toLowerCase());
+            if (repo && !chosen.includes(repo)) chosen.push(repo);
+        });
+
+        const remaining = all
+            .filter(r => !chosen.includes(r))
+            .sort((a, b) => b.stargazers_count - a.stargazers_count);
+
+        const limit = projectConfig.limit || 6;
+        const needed = Math.max(0, limit - chosen.length);
+        chosen.push(...remaining.slice(0, needed));
+
+        return chosen.slice(0, limit);
+    }
+
+    function renderProjects(repos) {
+        projectGrid.innerHTML = '';
+        repos.forEach(repo => {
+            const card = document.createElement('article');
+            card.className = 'project-card';
+
+            const meta = document.createElement('div');
+            meta.className = 'project-meta';
+            meta.appendChild(makePill(getYear(repo.pushed_at || repo.created_at)));
+            meta.appendChild(makePill(repo.language || 'Code'));
+            meta.appendChild(makePill(`⭐ ${repo.stargazers_count}`));
+
+            const title = document.createElement('h3');
+            title.textContent = repo.name;
+
+            const desc = document.createElement('p');
+            desc.className = 'project-desc';
+            desc.textContent = repo.description || 'No description provided.';
+
+            const tags = document.createElement('div');
+            tags.className = 'project-tags';
+            buildTags(repo).forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'chip';
+                span.textContent = tag;
+                tags.appendChild(span);
+            });
+
+            const links = document.createElement('div');
+            links.className = 'project-links';
+            const gh = document.createElement('a');
+            gh.href = repo.html_url;
+            gh.target = '_blank';
+            gh.rel = 'noopener';
+            gh.textContent = 'GitHub ↗';
+            links.appendChild(gh);
+            if (repo.homepage) {
+                const live = document.createElement('a');
+                live.href = repo.homepage;
+                live.target = '_blank';
+                live.rel = 'noopener';
+                live.textContent = 'Live ↗';
+                links.appendChild(live);
+            }
+
+            card.appendChild(meta);
+            card.appendChild(title);
+            card.appendChild(desc);
+            if (tags.childElementCount) card.appendChild(tags);
+            card.appendChild(links);
+            projectGrid.appendChild(card);
+        });
+    }
+
+    function makePill(text) {
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.textContent = text;
+        return span;
+    }
+
+    function buildTags(repo) {
+        const tags = [];
+        if (repo.language) tags.push(repo.language);
+        if (Array.isArray(repo.topics)) {
+            repo.topics.slice(0, 3).forEach(t => tags.push(t));
+        }
+        return tags;
+    }
+
+    function getYear(dateStr) {
+        if (!dateStr) return 'Ongoing';
+        const date = new Date(dateStr);
+        return Number.isNaN(date.getTime()) ? 'Ongoing' : date.getFullYear();
     }
     
     document.getElementById('back-to-blog').addEventListener('click', (e) => {
