@@ -1,37 +1,36 @@
 # Jason Liu Personal Website
 
-This repository contains my GitHub Pages personal website and portfolio. It is a pure static site built with HTML, CSS, and JavaScript, focused on systems security, CTF writeups, fuzzing, reverse engineering, and low-level systems projects.
+This is my GitHub Pages personal site. It is a static HTML/CSS/JavaScript project for notes, public projects, and a short portfolio CV around systems security, CTF, fuzzing, reverse engineering, and low-level programming.
 
-The site is intentionally lightweight: there is no React, Vue, Next.js, bundler, or build step. GitHub Pages can serve it directly from the repository.
+There is no build step. GitHub Pages can serve the files as-is.
 
 ## Features
 
-- Single-page hash routing for Home, Blog, Projects, CV, and Blog Post views.
-- Dark and light mode toggle with `localStorage` persistence.
-- Blog browser that reads Markdown files from the GitHub repository through the GitHub Contents API.
-- Local `posts/posts.json` fallback when GitHub API requests fail or hit rate limits.
+- Hash-based SPA views: Home, Blog, Projects, CV, and Blog Post.
+- Dark/light theme toggle saved in `localStorage`.
+- Blog folder browser backed by the GitHub Contents API.
+- Local `posts/posts.json` fallback when GitHub API requests fail.
 - Markdown rendering through the `marked.js` CDN.
-- Project cards loaded from the GitHub public repositories API.
-- Featured repository ordering for security, fuzzing, CTF, and systems projects.
-- Responsive layout for desktop and mobile GitHub Pages usage.
+- Project cards loaded from public GitHub repositories.
+- Mobile layout that keeps the header and social links out of the way.
 
 ## File Structure
 
 ```text
 .
-├── index.html          # Static SPA markup
-├── css/
-│   └── style.css       # Theme, layout, cards, Markdown, and responsive styles
-├── js/
-│   └── main.js         # Theme, routing, typewriter, blog, and project logic
-├── posts/
-│   └── posts.json      # Local blog fallback data
-└── assets/             # Static images and other assets
+|-- index.html
+|-- css/
+|   `-- style.css
+|-- js/
+|   `-- main.js
+|-- posts/
+|   `-- posts.json
+`-- assets/
 ```
 
 ## Local Preview
 
-Because the site uses `fetch`, preview it through a local static server instead of opening `index.html` directly from the filesystem.
+Use a small static server so `fetch()` works normally:
 
 ```bash
 python -m http.server 8000
@@ -43,18 +42,17 @@ Then open:
 http://localhost:8000
 ```
 
-Any equivalent static file server is fine. No dependency installation is required.
+No dependency install is needed.
 
-## Deployment Notes
+## Deployment
 
-The site is designed for GitHub Pages. Push changes to the branch configured in the repository Pages settings, usually `main`, and GitHub Pages can serve the files directly.
+Push the files to the branch configured for GitHub Pages. The site does not need bundling, compilation, or generated assets.
 
-The Blog and Projects sections call the public GitHub API from the browser. If API rate limits, network restrictions, or repository visibility issues occur, the site keeps working through local fallback content and user-facing status messages.
+The Blog and Projects sections call the public GitHub API in the browser. If that API is unavailable or rate-limited, the page falls back to local data instead of rendering an empty section.
 
-## Future Improvements
+## Notes for Later
 
-- Add more local Markdown notes for offline-friendly fallback content.
-- Add a lightweight sanitizer if the Blog section ever renders untrusted Markdown.
-- Expand CV content with publications, research work, or formal project outcomes.
-- Add optional syntax highlighting while keeping the site build-free.
-- Improve repository metadata by maintaining topics and homepage URLs on GitHub.
+- Add more local Markdown fallbacks for important writeups.
+- Add a sanitizer before rendering Markdown from anyone else's content.
+- Keep GitHub repository topics updated so project cards have better tags.
+- Add syntax highlighting only if it can stay simple and build-free.
