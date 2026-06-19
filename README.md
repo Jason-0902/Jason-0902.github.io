@@ -1,70 +1,60 @@
-# Jason-0902.github.io
+# Jason Liu Personal Website
 
-This repository hosts my **personal website**, built and deployed using
-**GitHub Pages**.
+This repository contains my GitHub Pages personal website and portfolio. It is a pure static site built with HTML, CSS, and JavaScript, focused on systems security, CTF writeups, fuzzing, reverse engineering, and low-level systems projects.
 
-The site serves as a centralized place to present my background, projects,
-and learning notes, and to experiment with modern front-end web development
-in a clean and maintainable way.
+The site is intentionally lightweight: there is no React, Vue, Next.js, bundler, or build step. GitHub Pages can serve it directly from the repository.
 
----
+## Features
 
-## Purpose
+- Single-page hash routing for Home, Blog, Projects, CV, and Blog Post views.
+- Dark and light mode toggle with `localStorage` persistence.
+- Blog browser that reads Markdown files from the GitHub repository through the GitHub Contents API.
+- Local `posts/posts.json` fallback when GitHub API requests fail or hit rate limits.
+- Markdown rendering through the `marked.js` CDN.
+- Project cards loaded from the GitHub public repositories API.
+- Featured repository ordering for security, fuzzing, CTF, and systems projects.
+- Responsive layout for desktop and mobile GitHub Pages usage.
 
-This website is created for **personal, educational, and professional
-presentation purposes**.
+## File Structure
 
-It is used to:
+```text
+.
+├── index.html          # Static SPA markup
+├── css/
+│   └── style.css       # Theme, layout, cards, Markdown, and responsive styles
+├── js/
+│   └── main.js         # Theme, routing, typewriter, blog, and project logic
+├── posts/
+│   └── posts.json      # Local blog fallback data
+└── assets/             # Static images and other assets
+```
 
-- Introduce my academic background and interests
-- Organize and present selected projects and writeups
-- Maintain a lightweight blog / notes section
-- Practice front-end development and website structuring
+## Local Preview
 
-All content reflects my own work and learning process.
+Because the site uses `fetch`, preview it through a local static server instead of opening `index.html` directly from the filesystem.
 
----
+```bash
+python -m http.server 8000
+```
 
-## Structure
+Then open:
 
-The repository is organized as follows:
+```text
+http://localhost:8000
+```
 
-- **index.html**  
-  The main entry point of the website.
+Any equivalent static file server is fine. No dependency installation is required.
 
-- **assets/**  
-  Static assets such as images, icons, and other media used on the site.
+## Deployment Notes
 
-- **css/**  
-  Stylesheets for layout, typography, and visual design.
+The site is designed for GitHub Pages. Push changes to the branch configured in the repository Pages settings, usually `main`, and GitHub Pages can serve the files directly.
 
-- **js/**  
-  JavaScript files for interactivity and client-side behavior.
+The Blog and Projects sections call the public GitHub API from the browser. If API rate limits, network restrictions, or repository visibility issues occur, the site keeps working through local fallback content and user-facing status messages.
 
-- **posts/**  
-  Blog posts or technical notes written as part of my learning and
-  documentation process.
+## Future Improvements
 
----
-
-## Deployment
-
-The site is automatically deployed via **GitHub Pages**.
-
-Any changes pushed to the main branch are reflected on the live site after
-deployment completes.
-
----
-
-## Notes
-
-- This is a personal, non-commercial website.
-- The content may evolve over time as I continue learning and refining it.
-- Some sections may be experimental or incomplete.
-
----
-
-## License
-
-Unless stated otherwise, the content of this repository is provided for
-personal and educational use.
+- Add more local Markdown notes for offline-friendly fallback content.
+- Add a lightweight sanitizer if the Blog section ever renders untrusted Markdown.
+- Expand CV content with publications, research work, or formal project outcomes.
+- Add optional syntax highlighting while keeping the site build-free.
+- Improve repository metadata by maintaining topics and homepage URLs on GitHub.

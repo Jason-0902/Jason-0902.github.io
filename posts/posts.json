@@ -1,16 +1,16 @@
 [
   {
-    "slug": "ctf-reverse",
-    "title": "CTF Reverse Engineering 筆記",
+    "slug": "ctf-reverse-engineering-notes",
+    "title": "CTF Reverse Engineering Notes",
     "date": "2025-08-25",
     "readingTime": "less than 1 minute read",
     "hackmdUrl": "https://hackmd.io/@99DIu-XfRiORiha7DiBp1A/rJPW3jFtge"
   },
   {
-    "slug": "assembly-intro",
-    "title": "Assembly 語言入門",
+    "slug": "assembly-introduction",
+    "title": "Assembly Introduction",
     "date": "2025-08-01",
     "readingTime": "2 minutes read",
-    "hackmdUrl": "https://hackmd.io/你的另一篇筆記連結"
+    "markdown": "# Assembly Introduction\n\nThese notes collect basic assembly concepts used while learning reverse engineering and low-level systems programming.\n\n## Topics\n\n- Registers and calling conventions\n- Stack layout and function prologues\n- Reading disassembly with GDB and Ghidra\n\n```asm\npush rbp\nmov rbp, rsp\nsub rsp, 0x20\n```\n\n> This fallback post is bundled locally so the Blog section still works when GitHub API requests are unavailable.\n"
   }
 ]

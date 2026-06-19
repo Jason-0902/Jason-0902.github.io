@@ -1,104 +1,187 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jason Lin - 開發者 & CTF 玩家</title>
-    <link rel="stylesheet" href="css/style.css"> 
+    <meta name="description" content="Jason Liu's personal portfolio for systems security, fuzzing, CTF writeups, and low-level systems projects.">
+    <title>Jason Liu | Systems Security Portfolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="dark-mode">
-
     <header class="top-header">
-        <a href="#home" class="nav-link logo">Jason's Blog</a>
-        <nav class="navigation">
+        <a href="#home" class="logo nav-link" aria-label="Go to home">
+            <span class="logo-mark">~/</span>Jason Liu
+        </a>
+        <nav class="navigation" aria-label="Primary navigation">
             <a href="#home" class="nav-link active">Home</a>
             <a href="#blog" class="nav-link">Blog</a>
             <a href="#projects" class="nav-link">Projects</a>
             <a href="#cv" class="nav-link">CV</a>
-            <button id="dark-toggle">🌙</button>
+            <button id="dark-toggle" type="button" aria-label="Toggle color theme" title="Toggle color theme">☾</button>
         </nav>
     </header>
 
     <main class="content">
-        <section id="home" class="view active">
-            <div class="hero-content">
-                <h1>jason.io</h1>
-                <div id="typewriter-container">
-                    <span id="typewriter"></span><span class="cursor">|</span>
+        <section id="home" class="view active" aria-labelledby="home-title">
+            <div class="hero">
+                <p class="eyebrow">Personal site / GitHub portfolio</p>
+                <h1 id="home-title">Jason Liu</h1>
+                <p class="hero-subtitle">CS Student · Systems Security · CTF · Fuzzing</p>
+                <div id="typewriter-container" aria-live="polite">
+                    <span id="typewriter"></span><span class="cursor" aria-hidden="true">|</span>
+                </div>
+                <p class="hero-summary">
+                    I am a Computer Science and Information Engineering student at Chung Yuan Christian University,
+                    interested in system security, software reliability, fuzzing, reverse engineering, CTF, and systems programming.
+                </p>
+                <div class="hero-actions">
+                    <a class="button primary" href="#projects">View Projects</a>
+                    <a class="button secondary" href="#blog">Read Notes</a>
                 </div>
             </div>
         </section>
 
-        <section id="blog" class="view">
-            <h2>Blog Posts</h2>
-            <div id="blog-list">
-                </div>
+        <section id="blog" class="view" aria-labelledby="blog-title">
+            <div class="section-heading">
+                <p class="eyebrow">Notes and writeups</p>
+                <h2 id="blog-title">Blog</h2>
+                <p>CTF notes, reverse engineering logs, systems experiments, and security learning records.</p>
+            </div>
+            <div id="blog-status" class="status-message" hidden></div>
+            <nav id="blog-breadcrumbs" class="breadcrumbs" aria-label="Blog path"></nav>
+            <div id="blog-list" class="browser-list" aria-live="polite"></div>
         </section>
 
-        <section id="projects" class="view">
-            <div class="section-header">
-                <div>
-                    <p class="eyebrow">Selected builds & experiments</p>
-                    <h2>Projects</h2>
-                </div>
-                <p class="section-note">Security-first utilities, CTF helpers, and explorations into low-level systems.</p>
+        <section id="projects" class="view" aria-labelledby="projects-title">
+            <div class="section-heading">
+                <p class="eyebrow">Selected engineering work</p>
+                <h2 id="projects-title">Projects</h2>
+                <p>Public repositories focused on security tooling, CTF practice, fuzzing, and low-level systems learning.</p>
             </div>
-
-            <div class="project-grid" id="project-grid">
-                <p>Loading GitHub projects...</p>
-            </div>
+            <div id="projects-status" class="status-message" hidden></div>
+            <div id="projects-grid" class="projects-grid" aria-live="polite"></div>
         </section>
 
-        <section id="cv" class="view">
-            <h2>Curriculum Vitae</h2>
-            <div class="cv-content">
-                <div class="cv-grid">
-                    <div class="cv-block">
-                        <h3>Profile</h3>
-                        <p class="cv-text">CTF-focused developer with a passion for reverse engineering and systems programming.</p>
+        <section id="cv" class="view" aria-labelledby="cv-title">
+            <div class="section-heading">
+                <p class="eyebrow">Portfolio CV</p>
+                <h2 id="cv-title">Curriculum Vitae</h2>
+                <p>A concise academic and project profile for CS, cybersecurity, and systems graduate applications.</p>
+            </div>
+
+            <div class="cv-grid">
+                <article class="cv-card wide">
+                    <h3>Profile</h3>
+                    <p>
+                        Computer Science undergraduate with interests in systems security, fuzzing, reverse engineering,
+                        software reliability, and low-level systems programming. I use projects and CTF writeups to connect
+                        theory with reproducible engineering practice.
+                    </p>
+                </article>
+
+                <article class="cv-card">
+                    <h3>Education</h3>
+                    <p><strong>B.S. in Computer Science and Information Engineering</strong></p>
+                    <p>Chung Yuan Christian University</p>
+                </article>
+
+                <article class="cv-card">
+                    <h3>Security Interests</h3>
+                    <div class="chip-group">
+                        <span class="chip">Fuzzing</span>
+                        <span class="chip">Reverse Engineering</span>
+                        <span class="chip">CTF</span>
+                        <span class="chip">Binary Analysis</span>
+                        <span class="chip">System Reliability</span>
                     </div>
-                    <div class="cv-block">
-                        <h3>Skills</h3>
-                        <div class="chip-list">
-                            <span class="chip">GDB</span>
-                            <span class="chip">IDA</span>
-                            <span class="chip">Linux</span>
-                            <span class="chip">Python</span>
-                            <span class="chip">C/C++</span>
-                            <span class="chip">Java</span>
-                            <span class="chip">Git</span>
-                            <span class="chip">Docker</span>
+                </article>
+
+                <article class="cv-card wide">
+                    <h3>Research / Project Experience</h3>
+                    <div class="experience-list">
+                        <div class="experience-item">
+                            <h4>Autoware Fuzzing with AFL++ / AFL</h4>
+                            <p>Exploring fuzzing workflows for complex software components and reliability-oriented testing.</p>
+                        </div>
+                        <div class="experience-item">
+                            <h4>CTF and Reverse Engineering Writeups</h4>
+                            <p>Documenting binary analysis, exploitation learning, and challenge-solving methodology.</p>
+                        </div>
+                        <div class="experience-item">
+                            <h4>Web Dork Fuzzer</h4>
+                            <p>Building lightweight web security tooling for discovery, automation, and practical testing.</p>
+                        </div>
+                        <div class="experience-item">
+                            <h4>Writing an OS in Rust Learning Project</h4>
+                            <p>Studying operating system concepts through Rust, boot flow, memory, and low-level interfaces.</p>
                         </div>
                     </div>
-                    <div class="cv-block">
-                        <h3>Languages</h3>
-                        <div class="chip-list">
-                            <span class="chip">Chinese</span>
-                            <span class="chip">English</span>
+                </article>
+
+                <article class="cv-card wide">
+                    <h3>Technical Skills</h3>
+                    <div class="skill-groups">
+                        <div>
+                            <h4>Languages</h4>
+                            <div class="chip-group">
+                                <span class="chip">C/C++</span>
+                                <span class="chip">Python</span>
+                                <span class="chip">Rust</span>
+                                <span class="chip">JavaScript</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Security</h4>
+                            <div class="chip-group">
+                                <span class="chip">Fuzzing</span>
+                                <span class="chip">Reverse Engineering</span>
+                                <span class="chip">CTF</span>
+                                <span class="chip">GDB</span>
+                                <span class="chip">Ghidra</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Systems</h4>
+                            <div class="chip-group">
+                                <span class="chip">Linux</span>
+                                <span class="chip">Docker</span>
+                                <span class="chip">Git</span>
+                                <span class="chip">x86-64 Assembly</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </article>
+
+                <article class="cv-card">
+                    <h3>Languages</h3>
+                    <div class="chip-group">
+                        <span class="chip">Mandarin Chinese</span>
+                        <span class="chip">English</span>
+                    </div>
+                </article>
             </div>
         </section>
 
-        <section id="blog-post" class="view">
-            <button id="back-to-blog">&larr; 返回列表</button>
-            <h2 id="post-title"></h2>
-            <p id="post-meta"></p>
-            <hr>
-            <div id="post-content">
-                </div>
+        <section id="blog-post" class="view" aria-labelledby="post-title">
+            <button id="back-to-blog" class="button secondary" type="button">← Back to Blog</button>
+            <article class="post-shell">
+                <p id="post-meta" class="post-meta"></p>
+                <h2 id="post-title"></h2>
+                <div id="post-content" class="post-content"></div>
+            </article>
         </section>
     </main>
 
-    <footer class="social-footer">
-        <a href="https://github.com/jason-0902" target="_blank" title="GitHub">
-            GH
-        </a>
-        </footer>
+    <footer class="social-footer" aria-label="Social links">
+        <a href="https://github.com/Jason-0902" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="mailto:Jason-0902@users.noreply.github.com">Email</a>
+        <a href="#blog">Notes</a>
+        <a href="#cv">CV</a>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="js/main.js"></script>
 </body>

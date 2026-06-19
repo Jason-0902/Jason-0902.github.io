@@ -1,504 +1,535 @@
 document.addEventListener("DOMContentLoaded", () => {
-    let timerId;
-
-    const modeBtn = document.getElementById("dark-toggle");
-    const body = document.body;
-    const savedMode = localStorage.getItem("dark-mode") === "true";
-    body.classList.toggle("dark-mode", savedMode);
-    body.classList.toggle("light-mode", !savedMode);
-    updateToggle();
-    modeBtn.addEventListener("click", () => {
-        const isDark = body.classList.toggle("dark-mode");
-        body.classList.toggle("light-mode", !isDark);
-        localStorage.setItem("dark-mode", isDark);
-        updateToggle();
-    });
-    function updateToggle() {
-        modeBtn.textContent = body.classList.contains("dark-mode") ? "☀️" : "🌙";
-    }
-
-    const navLinks = document.querySelectorAll(".nav-link");
-    const views = document.querySelectorAll(".view");
-
-    navLinks.forEach(link => {
-        link.addEventListener("click", e => {
-            e.preventDefault();
-            const id = link.getAttribute("href").slice(1);
-            switchView(id);
-            window.location.hash = id;
-        });
-    });
-    
-    const initialHash = window.location.hash.slice(1) || 'home';
-    switchView(initialHash);
-
-    function switchView(id) {
-        navLinks.forEach(a => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
-        views.forEach(v => v.classList.toggle("active", v.id === id));
-        clearTimeout(timerId);
-
-        if (id === "home") {
-            setTimeout(startTypewriter, 100);
-        }
-    }
-
-    const phrases = [
-      "學生｜開發者｜喜歡 CTF 與系統開發",
-      "熱衷於學習 Rust、Ghidra、x86-64 組語",
-      "未來想挑戰系統底層與資安領域"
-    ];
-
-    let pIdx = 0, cIdx = 0, deleting = false; 
-    const typer = document.getElementById("typewriter");
-
-    function typeStep() {
-        if (!typer) return;
-        const text = phrases[pIdx];
-        if (!deleting) {
-            typer.textContent = text.slice(0, ++cIdx);
-            if (cIdx === text.length) {
-                deleting = true;
-                timerId = setTimeout(typeStep, 2000);
-            } else {
-                timerId = setTimeout(typeStep, 100);
-            }
-        } else {
-            typer.textContent = text.slice(0, --cIdx);
-            if (cIdx === 0) {
-                deleting = false;
-                pIdx = (pIdx + 1) % phrases.length;
-                timerId = setTimeout(typeStep, 500);
-            } else {
-                timerId = setTimeout(typeStep, 50);
-            }
-        }
-    }
-
-    function startTypewriter() {
-        clearTimeout(timerId);
-        pIdx = 0; cIdx = 0; deleting = false;
-        if (typer) {
-            typer.textContent = "";
-            typeStep();
-        }
-    }
-
-    if (window.marked) {
-        window.marked.setOptions({ mangle: false, headerIds: true, breaks: true });
-    }
-
-    const repoConfig = {
-        owner: 'Jason-0902',
-        repo: 'Pwn-college-writeup',
-        contentDir: '' // set to a folder path (e.g. 'notes') if posts live in a subfolder
+    const CONFIG = {
+        githubUser: "Jason-0902",
+        githubRepo: "Jason-0902.github.io",
+        blogPath: "posts",
+        fallbackPostsUrl: "posts/posts.json",
+        featuredRepos: [
+            "Pwn-college-writeup",
+            "web-dork-fuzzer",
+            "wdf",
+            "Writing-an-OS-in-Rust-Learning-Project"
+        ]
     };
-    const projectConfig = {
-        username: 'Jason-0902',
-        featured: ['Pwn-college-writeup'], // list repos you want pinned to the top
-        limit: 6
+
+    const state = {
+        currentBlogPath: "",
+        blogSource: "github",
+        typewriterTimer: null,
+        typewriterStarted: false,
+        fallbackPosts: []
     };
-    const blogListEl = document.getElementById('blog-list');
-    const projectGrid = document.getElementById('project-grid');
-    let cachedPosts = [];
-    const postsByPath = new Map();
-    const dirSet = new Set();
-    let currentPath = repoConfig.contentDir;
 
-    initBlog();
-    initProjects();
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-    async function initBlog() {
-        if (!blogListEl) return;
-        blogListEl.innerHTML = '<p>載入 GitHub 文章中...</p>';
-        try {
-            cachedPosts = await fetchPostsFromGitHub();
-            cachedPosts.forEach(p => postsByPath.set(p.path, p));
-            buildDirSetFromPosts(cachedPosts);
-            renderBrowser(currentPath);
-        } catch (err) {
-            console.error('Failed to load posts from GitHub', err);
-            blogListEl.innerHTML = '<p>GitHub 文章載入失敗，改用預設列表。</p>';
-            fallbackPostsFromJson();
-        }
-    }
+    const escapeHtml = (value = "") => String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
-    function buildDirSetFromPosts(posts) {
-        dirSet.clear();
-        posts.forEach(post => {
-            let dir = getDirname(post.path);
-            while (dir) {
-                dirSet.add(dir);
-                dir = getDirname(dir);
-            }
-        });
-    }
+    const formatDate = (value) => {
+        if (!value) return "Unknown date";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleDateString("en", { year: "numeric", month: "short", day: "numeric" });
+    };
 
-    function renderPostList(posts) {
-        if (!blogListEl) return;
-        blogListEl.innerHTML = '';
-        posts.forEach(post => {
-            const a = document.createElement('a');
-            a.href = '#';
-            a.className = 'blog-item';
-            const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
-            a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
-            a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
-            blogListEl.appendChild(a);
-        });
-    }
+    const showStatus = (selector, message) => {
+        const element = $(selector);
+        if (!element) return;
+        element.hidden = !message;
+        element.textContent = message || "";
+    };
 
-    function renderBrowser(path) {
-        if (!blogListEl) return;
-        blogListEl.innerHTML = '';
+    // Theme
+    const theme = {
+        init() {
+            const savedTheme = localStorage.getItem("theme");
+            const legacyDarkMode = localStorage.getItem("dark-mode");
+            const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+            const mode = savedTheme || (legacyDarkMode ? (legacyDarkMode === "true" ? "dark" : "light") : (prefersLight ? "light" : "dark"));
+            this.apply(mode);
 
-        const breadcrumb = document.createElement('div');
-        breadcrumb.className = 'browser-breadcrumb meta';
-        breadcrumb.textContent = path ? `/${path}` : '/';
-        blogListEl.appendChild(breadcrumb);
-
-        if (path) {
-            const up = document.createElement('a');
-            up.href = '#';
-            up.className = 'blog-item';
-            up.innerHTML = `<h3>..</h3><div class="meta">返回上一層</div>`;
-            up.addEventListener('click', e => { e.preventDefault(); navigateUp(); });
-            blogListEl.appendChild(up);
-        }
-
-        const subdirs = getImmediateSubdirs(path);
-        if (subdirs.length) {
-            const folderLabel = document.createElement('div');
-            folderLabel.className = 'browser-section';
-            folderLabel.textContent = 'Folders';
-            blogListEl.appendChild(folderLabel);
-
-            subdirs.forEach(dir => {
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'blog-item';
-                a.innerHTML = `<h3>📁 ${dir.split('/').pop()}</h3><div class="meta">${dir}</div>`;
-                a.addEventListener('click', e => { e.preventDefault(); navigateTo(dir); });
-                blogListEl.appendChild(a);
+            const toggle = $("#dark-toggle");
+            if (!toggle) return;
+            toggle.addEventListener("click", () => {
+                const nextMode = document.body.classList.contains("dark-mode") ? "light" : "dark";
+                localStorage.setItem("theme", nextMode);
+                localStorage.setItem("dark-mode", String(nextMode === "dark"));
+                this.apply(nextMode);
             });
-        }
-
-        const files = cachedPosts.filter(p => getDirname(p.path) === path);
-        if (files.length) {
-            const fileLabel = document.createElement('div');
-            fileLabel.className = 'browser-section';
-            fileLabel.textContent = path ? `Files in /${path}` : 'Files in /';
-            blogListEl.appendChild(fileLabel);
-
-            files.forEach(post => {
-                const a = document.createElement('a');
-                a.href = '#';
-                a.className = 'blog-item';
-                const metaPieces = [post.readingTime, post.date].filter(Boolean).join(' · ') || 'Open to read';
-                a.innerHTML = `<h3>${post.title}</h3><div class="meta">${metaPieces}</div>`;
-                a.addEventListener('click', e => { e.preventDefault(); loadPost(post); });
-                blogListEl.appendChild(a);
-            });
-        }
-
-        if (!subdirs.length && !files.length) {
-            const empty = document.createElement('p');
-            empty.textContent = '這個資料夾沒有 Markdown 檔案。';
-            blogListEl.appendChild(empty);
-        }
-    }
-
-    function navigateTo(dir) {
-        currentPath = dir;
-        renderBrowser(currentPath);
-    }
-
-    function navigateUp() {
-        currentPath = getDirname(currentPath);
-        renderBrowser(currentPath);
-    }
-
-    function getImmediateSubdirs(path) {
-        const prefix = path ? `${path}/` : '';
-        const dirs = [];
-        dirSet.forEach(dir => {
-            if (!dir.startsWith(prefix)) return;
-            const rest = dir.slice(prefix.length);
-            if (rest && !rest.includes('/')) dirs.push(dir);
-        });
-        return dirs.sort();
-    }
-
-    async function fetchPostsFromGitHub() {
-        const branch = await fetchDefaultBranch();
-        const tree = await fetchRepoTree(branch);
-        const markdownFiles = tree
-            .filter(item => item.type === 'blob' && item.path.endsWith('.md'))
-            .filter(item => item.path.toLowerCase() !== 'readme.md')
-            .filter(item => repoConfig.contentDir ? item.path.startsWith(`${repoConfig.contentDir}/`) : true);
-
-        if (markdownFiles.length === 0) {
-            throw new Error('No markdown files found in repository.');
-        }
-
-        const posts = [];
-        for (const file of markdownFiles) {
-            const rawUrl = buildRawUrl(branch, file.path);
-            let mdText = '';
-            let meta = {};
-            try {
-                mdText = await fetch(rawUrl).then(r => {
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    return r.text();
-                });
-                meta = parseFrontMatter(mdText);
-            } catch (err) {
-                console.warn(`Failed to fetch ${file.path}:`, err);
+        },
+        apply(mode) {
+            const isDark = mode !== "light";
+            document.body.classList.toggle("dark-mode", isDark);
+            document.body.classList.toggle("light-mode", !isDark);
+            const toggle = $("#dark-toggle");
+            if (toggle) {
+                toggle.textContent = isDark ? "☾" : "☀";
+                toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+                toggle.title = isDark ? "Switch to light mode" : "Switch to dark mode";
             }
-
-            const title = meta.title || extractTitleFromMd(mdText) || formatTitleFromPath(file.path);
-            const date = meta.date || deriveDateFromPath(file.path);
-            const readingTime = mdText ? estimateReadingTime(mdText) : 'Open to read';
-
-            posts.push({ title, date, readingTime, rawUrl, path: file.path, branch });
         }
+    };
 
-        return posts.sort((a, b) => {
-            if (a.date && b.date) return new Date(b.date) - new Date(a.date);
-            return a.title.localeCompare(b.title);
-        });
-    }
-
-    async function fetchDefaultBranch() {
-        const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}`);
-        if (!res.ok) throw new Error(`Repo metadata failed: ${res.status}`);
-        const data = await res.json();
-        return data.default_branch || 'main';
-    }
-
-    async function fetchRepoTree(branch) {
-        const res = await fetch(`https://api.github.com/repos/${repoConfig.owner}/${repoConfig.repo}/git/trees/${branch}?recursive=1`);
-        if (!res.ok) throw new Error(`Repo tree failed: ${res.status}`);
-        const data = await res.json();
-        return data.tree || [];
-    }
-
-    function buildRawUrl(branch, path) {
-        return `https://raw.githubusercontent.com/${repoConfig.owner}/${repoConfig.repo}/${branch}/${path}`;
-    }
-
-    function formatTitleFromPath(path) {
-        const name = path.split('/').pop().replace(/\.md$/i, '');
-        const words = name.replace(/[_-]+/g, ' ').trim();
-        return words.charAt(0).toUpperCase() + words.slice(1);
-    }
-
-    function getDirname(path) {
-        const parts = path.split('/');
-        parts.pop();
-        return parts.join('/');
-    }
-
-    function deriveDateFromPath(path) {
-        const match = path.match(/(20\d{2}-\d{2}-\d{2})/);
-        return match ? match[1] : '';
-    }
-
-    function parseFrontMatter(mdText) {
-        if (!mdText.startsWith('---')) return {};
-        const end = mdText.indexOf('---', 3);
-        if (end === -1) return {};
-        const block = mdText.slice(3, end).trim();
-        return block.split('\n').reduce((acc, line) => {
-            const [key, ...rest] = line.split(':');
-            if (!key || rest.length === 0) return acc;
-            acc[key.trim()] = rest.join(':').trim();
-            return acc;
-        }, {});
-    }
-
-    function extractTitleFromMd(mdText) {
-        const heading = mdText.match(/^#\s+(.+)/m);
-        return heading ? heading[1].trim() : '';
-    }
-
-    function estimateReadingTime(mdText) {
-        const words = mdText.trim().split(/\s+/).filter(Boolean).length;
-        const minutes = Math.max(1, Math.round(words / 200));
-        return `${minutes} min read`;
-    }
-
-    async function loadPost(post) {
-        document.getElementById('post-title').textContent = post.title;
-        const contentEl = document.getElementById('post-content');
-        const metaEl = document.getElementById('post-meta');
-        contentEl.innerHTML = '<p>載入文章中...</p>';
-        metaEl.textContent = '';
-
-        if (post.rawUrl) {
-            try {
-                const mdText = await fetch(post.rawUrl).then(r => {
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    return r.text();
-                });
-                const html = window.marked ? window.marked.parse(mdText) : `<pre>${escapeHtml(mdText)}</pre>`;
-                contentEl.innerHTML = html;
-                metaEl.textContent = `${estimateReadingTime(mdText)}${post.date ? ` · Published: ${post.date}` : ''}`;
-            } catch (err) {
-                console.error('Failed to load post content', err);
-                contentEl.innerHTML = '<p>載入文章內容失敗。</p>';
-            }
-        } else if (post.hackmdUrl) {
-            const iframe = document.createElement('iframe');
-            iframe.src = post.hackmdUrl;
-            contentEl.innerHTML = '';
-            contentEl.appendChild(iframe);
-            metaEl.textContent = post.date ? `Published: ${post.date}` : '';
-        } else {
-            contentEl.innerHTML = '<p>文章連結不存在。</p>';
-        }
-
-        switchView('blog-post');
-    }
-
-    function escapeHtml(str) {
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-    }
-
-    function fallbackPostsFromJson() {
-        fetch('posts/posts.json')
-            .then(res => res.json())
-            .then(blogPosts => {
-                cachedPosts = blogPosts;
-                renderPostList(blogPosts);
-            })
-            .catch(err => {
-                console.error('Fallback posts load failed', err);
-                if (blogListEl) blogListEl.innerHTML = '<p>沒有可用的文章。</p>';
+    // Routing
+    const router = {
+        validRoutes: new Set(["home", "blog", "projects", "cv", "blog-post"]),
+        init() {
+            document.addEventListener("click", (event) => {
+                const link = event.target.closest("a[href^='#']");
+                if (!link) return;
+                const route = link.getAttribute("href").slice(1) || "home";
+                if (!this.validRoutes.has(route)) return;
+                event.preventDefault();
+                this.go(route);
             });
-    }
 
-    async function initProjects() {
-        if (!projectGrid) return;
-        projectGrid.innerHTML = '<p>Loading GitHub projects...</p>';
-        try {
-            const repos = await fetchGithubRepos();
-            if (!repos.length) {
-                projectGrid.innerHTML = '<p>No public repositories found.</p>';
+            window.addEventListener("hashchange", () => this.sync());
+            this.sync();
+        },
+        sync() {
+            const route = window.location.hash.slice(1) || "home";
+            if (!this.validRoutes.has(route)) {
+                this.go("home", true);
                 return;
             }
-            renderProjects(repos);
-        } catch (err) {
-            console.error('Failed to load projects from GitHub', err);
-            projectGrid.innerHTML = '<p>GitHub projects 載入失敗。</p>';
-        }
-    }
-
-    async function fetchGithubRepos() {
-        const res = await fetch(`https://api.github.com/users/${projectConfig.username}/repos?per_page=100`);
-        if (!res.ok) throw new Error(`GitHub repos failed: ${res.status}`);
-        const data = await res.json();
-        const all = data.filter(r => !r.fork);
-        const chosen = [];
-        const repoMap = new Map(all.map(r => [r.name.toLowerCase(), r]));
-
-        (projectConfig.featured || []).forEach(name => {
-            const repo = repoMap.get(name.toLowerCase());
-            if (repo && !chosen.includes(repo)) chosen.push(repo);
-        });
-
-        const remaining = all
-            .filter(r => !chosen.includes(r))
-            .sort((a, b) => b.stargazers_count - a.stargazers_count);
-
-        const limit = projectConfig.limit || 6;
-        const needed = Math.max(0, limit - chosen.length);
-        chosen.push(...remaining.slice(0, needed));
-
-        return chosen.slice(0, limit);
-    }
-
-    function renderProjects(repos) {
-        projectGrid.innerHTML = '';
-        repos.forEach(repo => {
-            const card = document.createElement('article');
-            card.className = 'project-card';
-
-            const meta = document.createElement('div');
-            meta.className = 'project-meta';
-            meta.appendChild(makePill(getYear(repo.pushed_at || repo.created_at)));
-            meta.appendChild(makePill(repo.language || 'Code'));
-            meta.appendChild(makePill(`⭐ ${repo.stargazers_count}`));
-
-            const title = document.createElement('h3');
-            title.textContent = repo.name;
-
-            const desc = document.createElement('p');
-            desc.className = 'project-desc';
-            desc.textContent = repo.description || 'No description provided.';
-
-            const tags = document.createElement('div');
-            tags.className = 'project-tags';
-            buildTags(repo).forEach(tag => {
-                const span = document.createElement('span');
-                span.className = 'chip';
-                span.textContent = tag;
-                tags.appendChild(span);
+            this.show(route);
+        },
+        go(route, replace = false) {
+            const hash = `#${route}`;
+            if (replace) {
+                history.replaceState(null, "", hash);
+                this.show(route);
+                return;
+            }
+            if (window.location.hash === hash) {
+                this.show(route);
+            } else {
+                window.location.hash = route;
+            }
+        },
+        show(route) {
+            $$(".view").forEach((view) => view.classList.toggle("active", view.id === route));
+            $$(".nav-link").forEach((link) => {
+                const href = link.getAttribute("href");
+                const isActive = href === `#${route}` || (route === "blog-post" && href === "#blog");
+                link.classList.toggle("active", isActive);
             });
 
-            const links = document.createElement('div');
-            links.className = 'project-links';
-            const gh = document.createElement('a');
-            gh.href = repo.html_url;
-            gh.target = '_blank';
-            gh.rel = 'noopener';
-            gh.textContent = 'GitHub ↗';
-            links.appendChild(gh);
-            if (repo.homepage) {
-                const live = document.createElement('a');
-                live.href = repo.homepage;
-                live.target = '_blank';
-                live.rel = 'noopener';
-                live.textContent = 'Live ↗';
-                links.appendChild(live);
+            if (route === "home") typewriter.start();
+            if (route === "blog") blog.ensureLoaded();
+            if (route === "projects") projects.ensureLoaded();
+            if (route === "blog-post") blog.ensurePostPlaceholder();
+        }
+    };
+
+    // Typewriter
+    const typewriter = {
+        phrases: [
+            "Building security-focused tools and systems projects.",
+            "Interested in fuzzing, reverse engineering, and system reliability.",
+            "Documenting my learning through CTF writeups and projects."
+        ],
+        phraseIndex: 0,
+        charIndex: 0,
+        deleting: false,
+        start() {
+            const target = $("#typewriter");
+            if (!target) return;
+            clearTimeout(state.typewriterTimer);
+            if (!state.typewriterStarted) {
+                this.phraseIndex = 0;
+                this.charIndex = 0;
+                this.deleting = false;
+                target.textContent = "";
+                state.typewriterStarted = true;
+            }
+            this.step(target);
+        },
+        step(target) {
+            const text = this.phrases[this.phraseIndex];
+            this.charIndex += this.deleting ? -1 : 1;
+            target.textContent = text.slice(0, this.charIndex);
+
+            if (!this.deleting && this.charIndex === text.length) {
+                this.deleting = true;
+                state.typewriterTimer = setTimeout(() => this.step(target), 1800);
+                return;
             }
 
-            card.appendChild(meta);
-            card.appendChild(title);
-            card.appendChild(desc);
-            if (tags.childElementCount) card.appendChild(tags);
-            card.appendChild(links);
-            projectGrid.appendChild(card);
-        });
-    }
+            if (this.deleting && this.charIndex === 0) {
+                this.deleting = false;
+                this.phraseIndex = (this.phraseIndex + 1) % this.phrases.length;
+                state.typewriterTimer = setTimeout(() => this.step(target), 420);
+                return;
+            }
 
-    function makePill(text) {
-        const span = document.createElement('span');
-        span.className = 'pill';
-        span.textContent = text;
-        return span;
-    }
-
-    function buildTags(repo) {
-        const tags = [];
-        if (repo.language) tags.push(repo.language);
-        if (Array.isArray(repo.topics)) {
-            repo.topics.slice(0, 3).forEach(t => tags.push(t));
+            state.typewriterTimer = setTimeout(() => this.step(target), this.deleting ? 34 : 62);
         }
-        return tags;
+    };
+
+    // Blog
+    const blog = {
+        loaded: false,
+        async ensureLoaded() {
+            if (this.loaded) return;
+            this.loaded = true;
+            await this.loadDirectory("");
+        },
+        async loadDirectory(path = "") {
+            state.currentBlogPath = path;
+            this.renderBreadcrumbs(path);
+            this.renderLoading();
+
+            try {
+                const items = await this.fetchGithubDirectory(path);
+                state.blogSource = "github";
+                showStatus("#blog-status", "");
+                this.renderGithubItems(items, path);
+            } catch (error) {
+                console.warn("GitHub blog loading failed; using local fallback.", error);
+                state.blogSource = "fallback";
+                showStatus("#blog-status", "GitHub notes could not be loaded right now. Showing the local fallback list instead.");
+                await this.renderFallbackPosts();
+            }
+        },
+        async fetchGithubDirectory(path) {
+            const fullPath = [CONFIG.blogPath, path].filter(Boolean).join("/");
+            const apiUrl = `https://api.github.com/repos/${CONFIG.githubUser}/${CONFIG.githubRepo}/contents/${encodeURIComponent(fullPath).replaceAll("%2F", "/")}`;
+            const response = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
+            if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error("Expected a GitHub directory response.");
+            return data
+                .filter((item) => item.name !== "posts.json")
+                .sort((a, b) => {
+                    if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
+                    return a.name.localeCompare(b.name);
+                });
+        },
+        renderBreadcrumbs(path) {
+            const container = $("#blog-breadcrumbs");
+            if (!container) return;
+            const parts = path ? path.split("/").filter(Boolean) : [];
+            const crumbs = [{ label: "root", path: "" }].concat(parts.map((part, index) => ({
+                label: part,
+                path: parts.slice(0, index + 1).join("/")
+            })));
+
+            container.innerHTML = "";
+            crumbs.forEach((crumb, index) => {
+                const slash = document.createElement("span");
+                slash.textContent = "/";
+                container.appendChild(slash);
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "breadcrumb-link";
+                button.textContent = crumb.label;
+                button.addEventListener("click", () => this.loadDirectory(crumb.path));
+                container.appendChild(button);
+
+                if (index === crumbs.length - 1) button.setAttribute("aria-current", "page");
+            });
+        },
+        renderLoading() {
+            const list = $("#blog-list");
+            if (!list) return;
+            list.innerHTML = '<div class="status-message">Loading notes...</div>';
+        },
+        renderGithubItems(items, currentPath) {
+            const list = $("#blog-list");
+            if (!list) return;
+
+            if (!items.length) {
+                list.innerHTML = '<div class="status-message">No Markdown notes found in this folder yet.</div>';
+                return;
+            }
+
+            list.innerHTML = "";
+            items.forEach((item) => {
+                const isDirectory = item.type === "dir";
+                const isMarkdown = item.name.toLowerCase().endsWith(".md");
+                if (!isDirectory && !isMarkdown) return;
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "browser-item";
+                button.innerHTML = `
+                    <span class="browser-icon">${isDirectory ? "dir" : "md"}</span>
+                    <span>
+                        <span class="browser-title">${escapeHtml(item.name.replace(/\.md$/i, ""))}</span>
+                        <span class="browser-meta">${escapeHtml(item.path)}</span>
+                    </span>
+                    <span class="browser-kind">${isDirectory ? "folder" : "note"}</span>
+                `;
+                button.addEventListener("click", () => {
+                    if (isDirectory) {
+                        const nextPath = currentPath ? `${currentPath}/${item.name}` : item.name;
+                        this.loadDirectory(nextPath);
+                    } else {
+                        this.loadMarkdownPost(item);
+                    }
+                });
+                list.appendChild(button);
+            });
+        },
+        async renderFallbackPosts() {
+            const list = $("#blog-list");
+            if (!list) return;
+            this.renderBreadcrumbs("");
+
+            try {
+                const posts = state.fallbackPosts.length ? state.fallbackPosts : await this.fetchFallbackPosts();
+                state.fallbackPosts = posts;
+                list.innerHTML = "";
+                posts.forEach((post) => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "browser-item";
+                    button.innerHTML = `
+                        <span class="browser-icon">md</span>
+                        <span>
+                            <span class="browser-title">${escapeHtml(post.title)}</span>
+                            <span class="browser-meta">${escapeHtml(post.readingTime || "note")} · ${escapeHtml(post.date || "undated")}</span>
+                        </span>
+                        <span class="browser-kind">fallback</span>
+                    `;
+                    button.addEventListener("click", () => this.loadFallbackPost(post));
+                    list.appendChild(button);
+                });
+            } catch (error) {
+                console.error("Local fallback posts failed.", error);
+                list.innerHTML = '<div class="status-message">No local fallback posts are available.</div>';
+            }
+        },
+        async fetchFallbackPosts() {
+            const response = await fetch(CONFIG.fallbackPostsUrl);
+            if (!response.ok) throw new Error(`Fallback posts returned ${response.status}`);
+            return response.json();
+        },
+        async loadMarkdownPost(item) {
+            const title = item.name.replace(/\.md$/i, "");
+            this.setPostShell(title, `Markdown note · ${item.path}`);
+            router.go("blog-post");
+
+            try {
+                const response = await fetch(item.download_url);
+                if (!response.ok) throw new Error(`Markdown fetch returned ${response.status}`);
+                const markdown = await response.text();
+                this.renderMarkdown(markdown);
+            } catch (error) {
+                console.error("Markdown loading failed.", error);
+                this.renderPostMessage("This note could not be loaded from GitHub right now.");
+            }
+        },
+        loadFallbackPost(post) {
+            this.setPostShell(post.title, `${post.readingTime || "note"} · Published: ${post.date || "undated"}`);
+            router.go("blog-post");
+
+            if (post.markdown) {
+                this.renderMarkdown(post.markdown);
+                return;
+            }
+
+            if (post.hackmdUrl) {
+                const content = $("#post-content");
+                if (!content) return;
+                content.innerHTML = "";
+                const iframe = document.createElement("iframe");
+                iframe.src = post.hackmdUrl;
+                iframe.title = post.title;
+                iframe.loading = "lazy";
+                content.appendChild(iframe);
+                return;
+            }
+
+            this.renderPostMessage("This fallback entry does not have Markdown content yet.");
+        },
+        setPostShell(title, meta) {
+            const titleElement = $("#post-title");
+            const metaElement = $("#post-meta");
+            const content = $("#post-content");
+            if (titleElement) titleElement.textContent = title;
+            if (metaElement) metaElement.textContent = meta;
+            if (content) content.innerHTML = '<div class="status-message">Loading post...</div>';
+        },
+        ensurePostPlaceholder() {
+            const titleElement = $("#post-title");
+            const content = $("#post-content");
+            if (!titleElement || titleElement.textContent.trim()) return;
+            titleElement.textContent = "Blog Post";
+            const metaElement = $("#post-meta");
+            if (metaElement) metaElement.textContent = "No note selected";
+            if (content) {
+                content.innerHTML = '<div class="status-message">Open Blog and select a note to read. Direct #blog-post refreshes are supported, but no post state was available in this browser session.</div>';
+            }
+        },
+        renderMarkdown(markdown) {
+            const content = $("#post-content");
+            if (!content) return;
+
+            if (!window.marked) {
+                content.innerHTML = `<pre><code>${escapeHtml(markdown)}</code></pre>`;
+                return;
+            }
+
+            window.marked.setOptions({
+                gfm: true,
+                breaks: false,
+                mangle: false,
+                headerIds: false
+            });
+
+            // Markdown is rendered from trusted personal repository content. Add a sanitizer before accepting untrusted submissions.
+            content.innerHTML = window.marked.parse(markdown);
+        },
+        renderPostMessage(message) {
+            const content = $("#post-content");
+            if (content) content.innerHTML = `<div class="status-message">${escapeHtml(message)}</div>`;
+        }
+    };
+
+    // Projects
+    const projects = {
+        loaded: false,
+        fallbackRepos: [
+            {
+                name: "Pwn-college-writeup",
+                description: "CTF and binary exploitation learning notes from pwn.college practice.",
+                language: "Markdown",
+                stargazers_count: 0,
+                pushed_at: "2025-01-01",
+                topics: ["ctf", "pwn", "writeups"],
+                html_url: "https://github.com/Jason-0902/Pwn-college-writeup"
+            },
+            {
+                name: "web-dork-fuzzer",
+                description: "Security-focused web discovery and dork fuzzing experiments.",
+                language: "Python",
+                stargazers_count: 0,
+                pushed_at: "2025-01-01",
+                topics: ["security", "fuzzing", "web"],
+                html_url: "https://github.com/Jason-0902/web-dork-fuzzer"
+            },
+            {
+                name: "wdf",
+                description: "A compact web dork fuzzing tool and related experiments.",
+                language: "Python",
+                stargazers_count: 0,
+                pushed_at: "2025-01-01",
+                topics: ["security", "automation"],
+                html_url: "https://github.com/Jason-0902/wdf"
+            },
+            {
+                name: "Writing-an-OS-in-Rust-Learning-Project",
+                description: "Learning operating system internals through Rust and low-level systems programming.",
+                language: "Rust",
+                stargazers_count: 0,
+                pushed_at: "2025-01-01",
+                topics: ["rust", "os", "systems"],
+                html_url: "https://github.com/Jason-0902/Writing-an-OS-in-Rust-Learning-Project"
+            }
+        ],
+        async ensureLoaded() {
+            if (this.loaded) return;
+            this.loaded = true;
+            await this.load();
+        },
+        async load() {
+            const grid = $("#projects-grid");
+            if (grid) grid.innerHTML = '<div class="status-message">Loading GitHub repositories...</div>';
+
+            try {
+                const repos = await this.fetchRepos();
+                showStatus("#projects-status", "");
+                this.render(repos);
+            } catch (error) {
+                console.warn("GitHub projects loading failed; using fallback cards.", error);
+                showStatus("#projects-status", "GitHub repositories could not be loaded right now. Showing selected fallback projects instead.");
+                this.render(this.fallbackRepos);
+            }
+        },
+        async fetchRepos() {
+            const response = await fetch(`https://api.github.com/users/${CONFIG.githubUser}/repos?sort=pushed&per_page=100`, {
+                headers: { Accept: "application/vnd.github+json" }
+            });
+            if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+            const repos = await response.json();
+            return Array.isArray(repos) ? repos.filter((repo) => !repo.fork) : [];
+        },
+        sortRepos(repos) {
+            const featuredIndex = new Map(CONFIG.featuredRepos.map((name, index) => [name.toLowerCase(), index]));
+            return repos.slice().sort((a, b) => {
+                const aFeatured = featuredIndex.has(a.name.toLowerCase());
+                const bFeatured = featuredIndex.has(b.name.toLowerCase());
+                if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
+                if (aFeatured && bFeatured) {
+                    return featuredIndex.get(a.name.toLowerCase()) - featuredIndex.get(b.name.toLowerCase());
+                }
+                const starDiff = (b.stargazers_count || 0) - (a.stargazers_count || 0);
+                if (starDiff !== 0) return starDiff;
+                return new Date(b.pushed_at || 0) - new Date(a.pushed_at || 0);
+            });
+        },
+        render(repos) {
+            const grid = $("#projects-grid");
+            if (!grid) return;
+
+            const sorted = this.sortRepos(repos).slice(0, 12);
+            if (!sorted.length) {
+                grid.innerHTML = '<div class="status-message">No public repositories are available yet.</div>';
+                return;
+            }
+
+            grid.innerHTML = "";
+            sorted.forEach((repo) => grid.appendChild(this.createCard(repo)));
+        },
+        createCard(repo) {
+            const featured = CONFIG.featuredRepos.some((name) => name.toLowerCase() === repo.name.toLowerCase());
+            const card = document.createElement("article");
+            card.className = `project-card${featured ? " featured" : ""}`;
+            const description = repo.description || "A public project from my systems, security, or programming practice.";
+            const topics = Array.isArray(repo.topics) && repo.topics.length ? repo.topics.slice(0, 5) : this.inferTopics(repo);
+            const homepage = repo.homepage ? `<a href="${escapeHtml(repo.homepage)}" target="_blank" rel="noopener noreferrer">Homepage</a>` : "";
+
+            card.innerHTML = `
+                <h3>${escapeHtml(repo.name)}</h3>
+                <p>${escapeHtml(description)}</p>
+                <div class="project-meta">
+                    <span>${escapeHtml(repo.language || "Code")}</span>
+                    <span>★ ${Number(repo.stargazers_count || 0)}</span>
+                    <span>Updated ${escapeHtml(formatDate(repo.pushed_at || repo.updated_at))}</span>
+                    ${featured ? "<span>Featured</span>" : ""}
+                </div>
+                <div class="project-tags">
+                    ${topics.map((topic) => `<span class="chip">${escapeHtml(topic)}</span>`).join("")}
+                </div>
+                <div class="project-links">
+                    <a href="${escapeHtml(repo.html_url)}" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    ${homepage}
+                </div>
+            `;
+            return card;
+        },
+        inferTopics(repo) {
+            const name = repo.name.toLowerCase();
+            if (name.includes("pwn") || name.includes("ctf")) return ["ctf", "security", "writeups"];
+            if (name.includes("fuzz") || name.includes("dork")) return ["fuzzing", "web", "security"];
+            if (name.includes("os") || name.includes("rust")) return ["rust", "systems", "os"];
+            return ["project", "learning"];
+        }
+    };
+
+    const backButton = $("#back-to-blog");
+    if (backButton) {
+        backButton.addEventListener("click", () => router.go("blog"));
     }
 
-    function getYear(dateStr) {
-        if (!dateStr) return 'Ongoing';
-        const date = new Date(dateStr);
-        return Number.isNaN(date.getTime()) ? 'Ongoing' : date.getFullYear();
-    }
-    
-    document.getElementById('back-to-blog').addEventListener('click', (e) => {
-        e.preventDefault();
-        switchView('blog');
-        window.location.hash = 'blog';
-    });
+    theme.init();
+    router.init();
 });
