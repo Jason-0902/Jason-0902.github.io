@@ -14,12 +14,20 @@ document.addEventListener("DOMContentLoaded", () => {
         projectFallback("Pwn-college-writeup", "CTF and binary exploitation notes from pwn.college practice.", "Markdown", ["ctf", "pwn", "writeups"]),
         projectFallback("web-dork-fuzzer", "Small web discovery and dork fuzzing experiments.", "Python", ["security", "fuzzing", "web"]),
         projectFallback("wdf", "A compact web dork fuzzing tool and related experiments.", "Python", ["security", "automation"]),
-        projectFallback("Writing-an-OS-in-Rust-Learning-Project", "Operating system internals notes and Rust systems programming practice.", "Rust", ["rust", "os", "systems"])
+        projectFallback("Writing-an-OS-in-Rust-Learning-Project", "Operating system internals notes and Rust systems programming practice.", "Rust", ["rust", "os", "systems"]),
+        {
+            name: "Autoware Fuzzing with AFL++ / AFL",
+            description: "Fuzzing notes and experiments around larger software components.",
+            language: "C++",
+            topics: ["fuzzing", "afl++", "reliability"],
+            stargazers_count: 0,
+            pushed_at: "2025-01-01",
+            html_url: "https://github.com/Jason-0902"
+        }
     ];
 
     let blogLoaded = false;
     let projectsLoaded = false;
-    let currentBlogPath = "";
     let cachedFallbackPosts = [];
     let typeTimer = null;
     let phraseIndex = 0;
@@ -27,9 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let deleting = false;
 
     const phrases = [
-        "Building security-focused tools and systems projects.",
-        "Interested in fuzzing, reverse engineering, and system reliability.",
-        "Documenting my learning through CTF writeups and projects."
+        "Building small tools to understand real systems.",
+        "Writing notes from CTF, reverse engineering, and fuzzing practice.",
+        "Learning systems security through projects, not just courses."
     ];
 
     const $ = (selector, root = document) => root.querySelector(selector);
@@ -157,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadBlogFolder(path = "") {
-        currentBlogPath = path;
         renderBreadcrumbs(path);
         renderBlogLoading();
 
@@ -167,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderGithubFolder(items, path);
         } catch (error) {
             console.warn("Using local blog fallback:", error);
-            setStatus("#blog-status", "GitHub notes are unavailable right now, so this page is showing the local fallback list.");
+            setStatus("#blog-status", "Could not load GitHub notes right now. Showing local fallback posts instead.");
             await renderFallbackPosts();
         }
     }
@@ -385,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
             renderProjects(repos);
         } catch (error) {
             console.warn("Using project fallback:", error);
-            setStatus("#projects-status", "GitHub repositories are unavailable right now, so this page is showing selected fallback projects.");
+            setStatus("#projects-status", "GitHub repositories are unavailable right now. Showing selected fallback projects instead.");
             renderProjects(fallbackProjects);
         }
     }
@@ -435,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createProjectCard(repo) {
         const isFeatured = featuredRepos.some((name) => name.toLowerCase() === repo.name.toLowerCase());
-        const description = repo.description || "A public project from my systems, security, or programming practice.";
+        const description = repo.description || "No description provided.";
         const topics = Array.isArray(repo.topics) && repo.topics.length ? repo.topics.slice(0, 5) : guessTopics(repo.name);
         const homepage = repo.homepage
             ? `<a href="${escapeHtml(repo.homepage)}" target="_blank" rel="noopener noreferrer">Homepage</a>`
