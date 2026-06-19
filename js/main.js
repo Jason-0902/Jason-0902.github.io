@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const items = await fetchGithubFolder(path);
             setStatus("#blog-status", "");
-            renderGithubFolder(items, path);
+            await renderGithubFolder(items, path);
         } catch (error) {
             console.warn("Using local blog fallback:", error);
             setStatus("#blog-status", "Could not load GitHub notes right now. Showing local fallback posts instead.");
@@ -226,12 +226,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (list) list.innerHTML = '<div class="status-message">Loading notes...</div>';
     }
 
-    function renderGithubFolder(items, path) {
+    async function renderGithubFolder(items, path) {
         const list = $("#blog-list");
         if (!list) return;
 
         if (!items.length) {
-            list.innerHTML = '<div class="status-message">No Markdown notes found in this folder yet.</div>';
+            setStatus("#blog-status", "No Markdown files were found in this folder. Showing local fallback posts instead.");
+            await renderFallbackPosts();
             return;
         }
 
