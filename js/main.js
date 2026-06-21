@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const point = (node) => ({ x: node.x * width, y: node.y * height });
 
-        const drawTerminal = (terminal, time) => {
+        const drawTerminal = (terminal, time, strokeColor, textColor) => {
             const x = terminal.x * width;
             const y = terminal.y * height;
             const terminalWidth = terminal.w * width;
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             context.save();
             context.translate(Math.sin(time * 0.001 + x) * 2, Math.cos(time * 0.001 + y) * 2);
-            context.strokeStyle = "rgba(5, 5, 5, 0.74)";
+            context.strokeStyle = strokeColor;
             context.lineWidth = 3;
             context.strokeRect(x, y, terminalWidth, terminalHeight);
             context.beginPath();
@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             context.lineTo(x + terminalWidth, y + 31 + Math.sin(time * 0.002) * 2);
             context.stroke();
 
-            context.fillStyle = "rgba(5, 5, 5, 0.7)";
+            context.fillStyle = textColor;
             context.font = "14px JetBrains Mono, monospace";
             terminal.lines.forEach((line, index) => {
                 const visibleChars = Math.max(1, Math.floor(((time / 70) + index * 9) % (line.length + 8)));
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
             context.restore();
         };
 
-        const drawNetwork = (time) => {
+        const drawNetwork = (time, linkColor, strokeColor, packetColor, nodeFillColor, textColor) => {
             links.forEach(([fromIndex, toIndex], index) => {
                 const from = point(nodes[fromIndex]);
                 const to = point(nodes[toIndex]);
@@ -245,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const middleX = (from.x + to.x) / 2;
                 const middleY = (from.y + to.y) / 2 + wobble;
 
-                context.strokeStyle = "rgba(5, 5, 5, 0.46)";
+                context.strokeStyle = linkColor;
                 context.lineWidth = 3;
                 context.beginPath();
                 context.moveTo(from.x, from.y);
@@ -255,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const progress = ((time * 0.00018 + index * 0.17) % 1);
                 const packetX = (1 - progress) * (1 - progress) * from.x + 2 * (1 - progress) * progress * middleX + progress * progress * to.x;
                 const packetY = (1 - progress) * (1 - progress) * from.y + 2 * (1 - progress) * progress * middleY + progress * progress * to.y;
-                context.fillStyle = "rgba(215, 0, 0, 0.88)";
+                context.fillStyle = packetColor;
                 context.beginPath();
                 context.arc(packetX, packetY, 4.5, 0, Math.PI * 2);
                 context.fill();
@@ -264,22 +264,22 @@ document.addEventListener("DOMContentLoaded", () => {
             nodes.forEach((node, index) => {
                 const { x, y } = point(node);
                 const pulse = 1 + Math.sin(time * 0.003 + index) * 0.14;
-                context.strokeStyle = index % 2 ? "rgba(5, 5, 5, 0.82)" : "rgba(215, 0, 0, 0.84)";
-                context.fillStyle = "rgba(255, 255, 255, 0.78)";
+                context.strokeStyle = index % 2 ? strokeColor : packetColor;
+                context.fillStyle = nodeFillColor;
                 context.lineWidth = 3;
                 context.beginPath();
                 context.arc(x, y, 25 * pulse, 0, Math.PI * 2);
                 context.fill();
                 context.stroke();
-                context.fillStyle = "rgba(5, 5, 5, 0.72)";
+                context.fillStyle = textColor;
                 context.font = "12px JetBrains Mono, monospace";
                 context.textAlign = "center";
                 context.fillText(node.label, x, y + 4);
             });
         };
 
-        const drawScanlines = (time) => {
-            context.strokeStyle = "rgba(215, 0, 0, 0.2)";
+        const drawScanlines = (time, strokeColor) => {
+            context.strokeStyle = strokeColor;
             context.lineWidth = 2;
             for (let index = 0; index < 7; index += 1) {
                 const y = ((time * 0.035 + index * 96) % (height + 120)) - 60;
@@ -291,12 +291,21 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const render = (time = 0) => {
+            const isDark = document.body.classList.contains("dark-mode");
+            const backgroundColor = isDark ? "#0b0d10" : "#fff";
+            const inkColor = isDark ? "rgba(237, 240, 244, 0.58)" : "rgba(5, 5, 5, 0.46)";
+            const strongInkColor = isDark ? "rgba(237, 240, 244, 0.84)" : "rgba(5, 5, 5, 0.74)";
+            const redColor = isDark ? "rgba(255, 77, 90, 0.9)" : "rgba(215, 0, 0, 0.88)";
+            const redLineColor = isDark ? "rgba(255, 77, 90, 0.24)" : "rgba(215, 0, 0, 0.2)";
+            const nodeFillColor = isDark ? "rgba(20, 23, 28, 0.78)" : "rgba(255, 255, 255, 0.78)";
+            const textColor = isDark ? "rgba(237, 240, 244, 0.72)" : "rgba(5, 5, 5, 0.72)";
+
             context.clearRect(0, 0, width, height);
-            context.fillStyle = "#fff";
+            context.fillStyle = backgroundColor;
             context.fillRect(0, 0, width, height);
-            drawScanlines(time);
-            terminals.forEach((terminal) => drawTerminal(terminal, time));
-            drawNetwork(time);
+            drawScanlines(time, redLineColor);
+            terminals.forEach((terminal) => drawTerminal(terminal, time, strongInkColor, textColor));
+            drawNetwork(time, inkColor, strongInkColor, redColor, nodeFillColor, textColor);
 
             if (!reducedMotion) {
                 frameId = requestAnimationFrame(render);
