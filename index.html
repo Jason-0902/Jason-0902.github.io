@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260621">
 </head>
 <body class="dark-mode">
     <header class="top-header">
@@ -17,7 +17,7 @@
         </a>
         <nav class="navigation" aria-label="Primary navigation">
             <a href="#home" class="nav-link active">Home</a>
-            <a href="#blog" class="nav-link">Blog</a>
+            <a href="#blog" class="nav-link">Repos</a>
             <a href="#projects" class="nav-link">Projects</a>
             <a href="#cv" class="nav-link">CV</a>
             <button id="dark-toggle" type="button" aria-label="Toggle color theme" title="Toggle color theme">Dark</button>
@@ -30,7 +30,7 @@
                 <p>Jason's blog</p>
             </div>
             <div class="hero sketch-hero">
-                <img class="sketch-hero-art" src="assets/sketch-kaiju.svg" alt="" aria-hidden="true">
+                <img class="sketch-hero-art" src="assets/original-systems-sketch.svg" alt="" aria-hidden="true">
                 <div class="hero-copy">
                     <p class="eyebrow">Jason Liu</p>
                     <h1 id="home-title">jason.tw</h1>
@@ -50,9 +50,9 @@
 
         <section id="blog" class="view" aria-labelledby="blog-title">
             <div class="section-heading">
-                <p class="eyebrow">Public repository articles</p>
-                <h2 id="blog-title">Blog</h2>
-                <p>Articles are generated from my public GitHub repositories and their README files.</p>
+                <p class="eyebrow">GitHub public repositories</p>
+                <h2 id="blog-title">Repos</h2>
+                <p>Each entry opens the public repository README as a lightweight article.</p>
             </div>
             <div id="blog-status" class="status-message" hidden></div>
             <nav id="blog-breadcrumbs" class="breadcrumbs" aria-label="Blog source"></nav>
@@ -61,7 +61,7 @@
 
         <section id="projects" class="view" aria-labelledby="projects-title">
             <div class="section-heading">
-                <p class="eyebrow">Selected engineering work</p>
+                <p class="eyebrow">Selected public work</p>
                 <h2 id="projects-title">Projects</h2>
                 <p>Public repositories around security tooling, CTF practice, fuzzing, and low-level systems learning.</p>
             </div>
@@ -71,8 +71,8 @@
 
         <section id="cv" class="view" aria-labelledby="cv-title">
             <div class="section-heading">
-                <p class="eyebrow">Portfolio CV</p>
-                <h2 id="cv-title">Curriculum Vitae</h2>
+                <p class="eyebrow">Profile</p>
+                <h2 id="cv-title">CV</h2>
                 <p>Academic background, project work, and technical interests.</p>
             </div>
 
@@ -187,6 +187,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=20260621"></script>
 </body>
 </html>

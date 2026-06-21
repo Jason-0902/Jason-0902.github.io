@@ -26,22 +26,6 @@ There is no build step. GitHub Pages can serve the files as-is.
 `-- assets/
 ```
 
-## Local Preview
-
-Use a small static server so `fetch()` works normally:
-
-```bash
-python -m http.server 8000
-```
-
-Then open:
-
-```text
-http://localhost:8000
-```
-
-No dependency install is needed.
-
 ## Deployment
 
 Push the files to the branch configured for GitHub Pages. The site does not need bundling, compilation, or generated assets.
