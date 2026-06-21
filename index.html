@@ -26,36 +26,25 @@
 
     <main class="content">
         <section id="home" class="view active" aria-labelledby="home-title">
-            <div class="hero">
-                <p class="eyebrow">Personal site</p>
-                <h1 id="home-title">Jason Liu</h1>
-                <p class="hero-subtitle">CS Student &middot; Systems Security &middot; CTF &middot; Fuzzing</p>
-                <div id="typewriter-container" aria-live="polite">
-                    <span id="typewriter"></span><span class="cursor" aria-hidden="true">|</span>
-                </div>
-                <p class="hero-summary">
-                    I am a Computer Science and Information Engineering student at Chung Yuan Christian University.
-                    I use this site to document my projects, CTF notes, and learning around systems security,
-                    fuzzing, reverse engineering, and software reliability.
-                </p>
-                <div class="hero-actions">
-                    <a class="button primary" href="#projects">View Projects</a>
-                    <a class="button secondary" href="#blog">Read Repos</a>
-                </div>
-                <div class="hero-panel" aria-label="Current focus">
-                    <div>
-                        <span>Focus</span>
-                        <strong>Systems Security</strong>
+            <div class="intro-splash" aria-hidden="true">
+                <p>Jason's blog</p>
+            </div>
+            <div class="hero sketch-hero">
+                <img class="sketch-hero-art" src="assets/sketch-kaiju.svg" alt="" aria-hidden="true">
+                <div class="hero-copy">
+                    <p class="eyebrow">Jason Liu</p>
+                    <h1 id="home-title">jason.tw</h1>
+                    <p class="hero-subtitle">Switch theme for another world</p>
+                    <div id="typewriter-container" aria-live="polite">
+                        <span id="typewriter"></span><span class="cursor" aria-hidden="true">|</span>
                     </div>
-                    <div>
-                        <span>Current</span>
-                        <strong>Fuzzing / CTF / OS learning</strong>
-                    </div>
-                    <div>
-                        <span>Tools</span>
-                        <strong>Linux, GDB, Ghidra, AFL++, Rust</strong>
+                    <div class="hero-actions" aria-label="Primary links">
+                        <a class="button primary" href="#projects">Projects</a>
+                        <a class="button secondary" href="#blog">Repos</a>
+                        <a class="button secondary" href="#cv">CV</a>
                     </div>
                 </div>
+                <button id="home-scroll" class="scroll-cue" type="button" aria-label="Scroll to hero">↓</button>
             </div>
         </section>
 

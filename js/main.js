@@ -43,7 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initTheme();
     initRouting();
+    window.addEventListener("scroll", updateHomeChrome, { passive: true });
     $("#back-to-blog")?.addEventListener("click", () => goTo("blog"));
+    $("#home-scroll")?.addEventListener("click", () => {
+        $(".sketch-hero")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
     function initTheme() {
         const savedTheme = localStorage.getItem("theme");
@@ -112,6 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showRoute(route) {
+        document.body.classList.toggle("route-home", route === "home");
+        updateHomeChrome();
+
         $$(".view").forEach((view) => {
             view.classList.toggle("active", view.id === route);
         });
@@ -125,6 +132,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (route === "blog") loadBlogOnce();
         if (route === "projects") loadProjectsOnce();
         if (route === "blog-post") showEmptyPostIfNeeded();
+    }
+
+    function updateHomeChrome() {
+        if (!document.body.classList.contains("route-home")) {
+            document.body.classList.remove("home-stage-active");
+            return;
+        }
+
+        const splash = $(".intro-splash");
+        const threshold = splash ? splash.offsetHeight - 120 : 120;
+        document.body.classList.toggle("home-stage-active", window.scrollY >= threshold);
     }
 
     function startTypewriter() {
