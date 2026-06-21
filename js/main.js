@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
     initTheme();
+    initCoverAnimation();
     initRouting();
     window.addEventListener("scroll", updateHomeChrome, { passive: true });
     $("#back-to-blog")?.addEventListener("click", () => goTo("blog"));
@@ -172,6 +173,145 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         typeTimer = setTimeout(() => typeStep(target), deleting ? 35 : 65);
+    }
+
+    function initCoverAnimation() {
+        const canvas = $("#cover-canvas");
+        if (!canvas) return;
+
+        const context = canvas.getContext("2d");
+        if (!context) return;
+
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const nodes = [
+            { x: 0.12, y: 0.28, label: "scan" },
+            { x: 0.26, y: 0.62, label: "gdb" },
+            { x: 0.42, y: 0.34, label: "afl++" },
+            { x: 0.62, y: 0.67, label: "repo" },
+            { x: 0.78, y: 0.26, label: "linux" },
+            { x: 0.9, y: 0.58, label: "ctf" }
+        ];
+        const links = [[0, 2], [0, 1], [1, 3], [2, 3], [2, 4], [3, 5], [4, 5]];
+        const terminals = [
+            { x: 0.05, y: 0.12, w: 0.32, h: 0.26, lines: ["$ nmap -sV target", "$ afl-fuzz ./parser", "$ gdb ./challenge"] },
+            { x: 0.68, y: 0.38, w: 0.28, h: 0.28, lines: ["0x401080 <main>", "mov rbp, rsp", "call check_flag"] }
+        ];
+        let width = 0;
+        let height = 0;
+        let frameId = 0;
+
+        const resize = () => {
+            const rect = canvas.getBoundingClientRect();
+            const ratio = Math.min(window.devicePixelRatio || 1, 2);
+            width = Math.max(1, Math.floor(rect.width));
+            height = Math.max(1, Math.floor(rect.height));
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        };
+
+        const point = (node) => ({ x: node.x * width, y: node.y * height });
+
+        const drawTerminal = (terminal, time) => {
+            const x = terminal.x * width;
+            const y = terminal.y * height;
+            const terminalWidth = terminal.w * width;
+            const terminalHeight = terminal.h * height;
+
+            context.save();
+            context.translate(Math.sin(time * 0.001 + x) * 2, Math.cos(time * 0.001 + y) * 2);
+            context.strokeStyle = "rgba(5, 5, 5, 0.74)";
+            context.lineWidth = 3;
+            context.strokeRect(x, y, terminalWidth, terminalHeight);
+            context.beginPath();
+            context.moveTo(x, y + 34);
+            context.lineTo(x + terminalWidth, y + 31 + Math.sin(time * 0.002) * 2);
+            context.stroke();
+
+            context.fillStyle = "rgba(5, 5, 5, 0.7)";
+            context.font = "14px JetBrains Mono, monospace";
+            terminal.lines.forEach((line, index) => {
+                const visibleChars = Math.max(1, Math.floor(((time / 70) + index * 9) % (line.length + 8)));
+                context.fillText(line.slice(0, visibleChars), x + 18, y + 68 + index * 33);
+            });
+            context.restore();
+        };
+
+        const drawNetwork = (time) => {
+            links.forEach(([fromIndex, toIndex], index) => {
+                const from = point(nodes[fromIndex]);
+                const to = point(nodes[toIndex]);
+                const wobble = Math.sin(time * 0.0015 + index) * 12;
+                const middleX = (from.x + to.x) / 2;
+                const middleY = (from.y + to.y) / 2 + wobble;
+
+                context.strokeStyle = "rgba(5, 5, 5, 0.46)";
+                context.lineWidth = 3;
+                context.beginPath();
+                context.moveTo(from.x, from.y);
+                context.quadraticCurveTo(middleX, middleY, to.x, to.y);
+                context.stroke();
+
+                const progress = ((time * 0.00018 + index * 0.17) % 1);
+                const packetX = (1 - progress) * (1 - progress) * from.x + 2 * (1 - progress) * progress * middleX + progress * progress * to.x;
+                const packetY = (1 - progress) * (1 - progress) * from.y + 2 * (1 - progress) * progress * middleY + progress * progress * to.y;
+                context.fillStyle = "rgba(215, 0, 0, 0.88)";
+                context.beginPath();
+                context.arc(packetX, packetY, 4.5, 0, Math.PI * 2);
+                context.fill();
+            });
+
+            nodes.forEach((node, index) => {
+                const { x, y } = point(node);
+                const pulse = 1 + Math.sin(time * 0.003 + index) * 0.14;
+                context.strokeStyle = index % 2 ? "rgba(5, 5, 5, 0.82)" : "rgba(215, 0, 0, 0.84)";
+                context.fillStyle = "rgba(255, 255, 255, 0.78)";
+                context.lineWidth = 3;
+                context.beginPath();
+                context.arc(x, y, 25 * pulse, 0, Math.PI * 2);
+                context.fill();
+                context.stroke();
+                context.fillStyle = "rgba(5, 5, 5, 0.72)";
+                context.font = "12px JetBrains Mono, monospace";
+                context.textAlign = "center";
+                context.fillText(node.label, x, y + 4);
+            });
+        };
+
+        const drawScanlines = (time) => {
+            context.strokeStyle = "rgba(215, 0, 0, 0.2)";
+            context.lineWidth = 2;
+            for (let index = 0; index < 7; index += 1) {
+                const y = ((time * 0.035 + index * 96) % (height + 120)) - 60;
+                context.beginPath();
+                context.moveTo(width * 0.08, y);
+                context.bezierCurveTo(width * 0.34, y + 36, width * 0.62, y - 42, width * 0.94, y + 20);
+                context.stroke();
+            }
+        };
+
+        const render = (time = 0) => {
+            context.clearRect(0, 0, width, height);
+            context.fillStyle = "#fff";
+            context.fillRect(0, 0, width, height);
+            drawScanlines(time);
+            terminals.forEach((terminal) => drawTerminal(terminal, time));
+            drawNetwork(time);
+
+            if (!reducedMotion) {
+                frameId = requestAnimationFrame(render);
+            }
+        };
+
+        resize();
+        render();
+        window.addEventListener("resize", resize);
+        if (reducedMotion) return;
+        frameId = requestAnimationFrame(render);
+
+        window.addEventListener("pagehide", () => {
+            if (frameId) cancelAnimationFrame(frameId);
+        });
     }
 
     async function loadBlogOnce() {
