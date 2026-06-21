@@ -906,9 +906,18 @@ body.dark-mode .chip {
     margin-top: 10px;
 }
 
-.post-shell {
-    max-width: 860px;
+#blog-post {
+    max-width: 920px;
     margin: 0 auto;
+}
+
+#back-to-blog {
+    margin: 0 0 18px;
+}
+
+.post-shell {
+    max-width: none;
+    margin: 0;
     padding: 28px;
     border: 2px solid rgba(23, 25, 29, 0.72);
     border-radius: 5px 10px 6px 8px;

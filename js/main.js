@@ -132,7 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (route === "home") startTypewriter();
         if (route === "blog") loadBlogOnce();
         if (route === "projects") loadProjectsOnce();
-        if (route === "blog-post") showEmptyPostIfNeeded();
+        if (route === "blog-post") {
+            window.scrollTo({ top: 0, behavior: "auto" });
+            showEmptyPostIfNeeded();
+        }
     }
 
     function updateHomeChrome() {
@@ -403,15 +406,29 @@ document.addEventListener("DOMContentLoaded", () => {
         goTo("blog-post");
 
         try {
-            const response = await fetch(`https://api.github.com/repos/${githubUser}/${repo.name}/readme`, {
-                headers: { Accept: "application/vnd.github.raw" }
-            });
-            if (!response.ok) throw new Error(`README ${response.status}`);
-            renderMarkdown(await response.text());
+            renderMarkdown(await fetchRepoReadme(repo.name));
         } catch (error) {
-            console.warn("README load failed:", error);
+            console.warn("Repository README load failed:", error);
             renderRepoSummary(repo);
         }
+    }
+
+    async function fetchRepoReadme(repoName) {
+        const contentsUrl = `https://api.github.com/repos/${githubUser}/${repoName}/contents`;
+        const contentsResponse = await fetch(contentsUrl, { headers: { Accept: "application/vnd.github+json" } });
+        if (!contentsResponse.ok) throw new Error(`Repo contents ${contentsResponse.status}`);
+
+        const contents = await contentsResponse.json();
+        if (!Array.isArray(contents)) throw new Error("Repository root did not return a file list.");
+
+        const readme = contents.find((item) => {
+            return item.type === "file" && /^readme(?:\.[a-z0-9._-]+)?$/i.test(item.name);
+        });
+        if (!readme?.download_url) throw new Error("No README file found in repository root.");
+
+        const readmeResponse = await fetch(readme.download_url);
+        if (!readmeResponse.ok) throw new Error(`README file ${readmeResponse.status}`);
+        return readmeResponse.text();
     }
 
     function renderRepoSummary(repo) {
