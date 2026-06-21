@@ -147,12 +147,6 @@ body.route-home .top-header {
     transition: opacity 220ms ease, transform 220ms ease;
 }
 
-body.route-home:not(.home-stage-active) .top-header {
-    opacity: 0;
-    pointer-events: none;
-    transform: translate(-50%, -18px);
-}
-
 .logo {
     display: inline-flex;
     align-items: center;
@@ -177,17 +171,12 @@ body.dark-mode #dark-toggle {
     color: #edf0f4;
 }
 
-body .logo::before {
-    content: "🧑‍💻";
-    font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
-}
-
-body .logo-mark {
-    display: none;
-}
-
-.logo-mark {
-    color: var(--accent);
+.logo-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(237, 240, 244, 0.18);
 }
 
 .navigation {
@@ -325,6 +314,7 @@ body.route-home .hero {
 }
 
 .intro-splash {
+    position: relative;
     min-height: calc(100vh + 120px);
     display: grid;
     place-items: center;
@@ -468,6 +458,10 @@ body.dark-mode .hero-copy::before {
     line-height: 1;
     backdrop-filter: blur(12px);
     animation: cue-bob 1500ms ease-in-out infinite;
+}
+
+.intro-splash .scroll-cue {
+    bottom: 34px;
 }
 
 @keyframes cue-bob {
@@ -1177,10 +1171,6 @@ body:not(.route-home) .social-footer {
         transform: none;
         width: 100%;
         padding: 12px 14px;
-    }
-
-    body.route-home:not(.home-stage-active) .top-header {
-        transform: translateY(-18px);
     }
 
     .logo {
