@@ -8,8 +8,8 @@ There is no build step. GitHub Pages can serve the files as-is.
 
 - Hash-based SPA views: Home, Blog, Projects, CV, and Blog Post.
 - Dark/light theme toggle saved in `localStorage`.
-- Blog folder browser backed by the GitHub Contents API.
-- Local `posts/posts.json` fallback when GitHub API requests fail.
+- Blog entries loaded from public GitHub repositories.
+- Repository README rendering through the GitHub API.
 - Markdown rendering through the `marked.js` CDN.
 - Project cards loaded from public GitHub repositories.
 - Mobile layout that keeps the header and social links out of the way.
@@ -23,8 +23,6 @@ There is no build step. GitHub Pages can serve the files as-is.
 |   `-- style.css
 |-- js/
 |   `-- main.js
-|-- posts/
-|   `-- posts.json
 `-- assets/
 ```
 
@@ -48,11 +46,9 @@ No dependency install is needed.
 
 Push the files to the branch configured for GitHub Pages. The site does not need bundling, compilation, or generated assets.
 
-The Blog and Projects sections call the public GitHub API in the browser. If that API is unavailable or rate-limited, the page falls back to local data instead of rendering an empty section.
+The Blog and Projects sections call the public GitHub API in the browser. Blog entries come from public repositories and render each repository README when available.
 
 ## Notes for Later
 
-- Add more local Markdown fallbacks for important writeups.
-- Add a sanitizer before rendering Markdown from anyone else's content.
 - Keep GitHub repository topics updated so project cards have better tags.
 - Add syntax highlighting only if it can stay simple and build-free.

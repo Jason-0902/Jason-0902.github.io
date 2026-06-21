@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     const githubUser = "Jason-0902";
-    const githubRepo = "Jason-0902.github.io";
-    const blogRoot = "posts";
     const featuredRepos = [
         "Pwn-college-writeup",
         "web-dork-fuzzer",
@@ -28,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let blogLoaded = false;
     let projectsLoaded = false;
-    let cachedFallbackPosts = [];
+    let cachedRepos = null;
     let typeTimer = null;
     let phraseIndex = 0;
     let charIndex = 0;
@@ -161,124 +159,60 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadBlogOnce() {
         if (blogLoaded) return;
         blogLoaded = true;
-        await loadBlogFolder("");
+        await loadRepoArticles();
     }
 
-    async function loadBlogFolder(path = "") {
-        renderBreadcrumbs(path);
+    async function loadRepoArticles() {
+        renderRepoSource();
         renderBlogLoading();
-
         try {
-            const items = await fetchGithubFolder(path);
+            const repos = await fetchRepos();
             setStatus("#blog-status", "");
-            await renderGithubFolder(items, path);
+            renderRepoArticles(repos);
         } catch (error) {
-            console.warn("Using local blog fallback:", error);
-            setStatus("#blog-status", "Could not load GitHub notes right now. Showing local fallback posts instead.");
-            await renderFallbackPosts();
+            console.warn("GitHub repo article load failed:", error);
+            setStatus("#blog-status", "GitHub repositories are unavailable right now.");
+            renderRepoArticles([]);
         }
     }
 
-    async function fetchGithubFolder(path) {
-        const fullPath = [blogRoot, path].filter(Boolean).join("/");
-        const url = `https://api.github.com/repos/${githubUser}/${githubRepo}/contents/${encodePath(fullPath)}`;
-        const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
-
-        if (!response.ok) throw new Error(`GitHub API ${response.status}`);
-
-        const items = await response.json();
-        if (!Array.isArray(items)) throw new Error("GitHub did not return a folder.");
-
-        return items
-            .filter((item) => item.name !== "posts.json")
-            .filter((item) => item.type === "dir" || item.name.toLowerCase().endsWith(".md"))
-            .sort((a, b) => {
-                if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
-                return a.name.localeCompare(b.name);
-            });
-    }
-
-    function renderBreadcrumbs(path) {
+    function renderRepoSource() {
         const container = $("#blog-breadcrumbs");
         if (!container) return;
-
-        const parts = path ? path.split("/").filter(Boolean) : [];
-        const crumbs = [{ label: "root", path: "" }];
-        parts.forEach((part, index) => {
-            crumbs.push({ label: part, path: parts.slice(0, index + 1).join("/") });
-        });
-
-        container.innerHTML = "";
-        crumbs.forEach((crumb) => {
-            container.append(document.createTextNode("/"));
-
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "breadcrumb-link";
-            button.textContent = crumb.label;
-            button.addEventListener("click", () => loadBlogFolder(crumb.path));
-            container.append(button);
-        });
+        container.textContent = `github.com/${githubUser} / public repositories`;
     }
 
     function renderBlogLoading() {
         const list = $("#blog-list");
-        if (list) list.innerHTML = '<div class="status-message">Loading notes...</div>';
+        if (list) list.innerHTML = '<div class="status-message">Loading public repositories...</div>';
     }
 
-    async function renderGithubFolder(items, path) {
+    function renderRepoArticles(repos) {
         const list = $("#blog-list");
         if (!list) return;
 
-        if (!items.length) {
-            setStatus("#blog-status", "No Markdown files were found in this folder. Showing local fallback posts instead.");
-            await renderFallbackPosts();
+        const sorted = sortRepos(repos);
+        if (!sorted.length) {
+            list.innerHTML = '<div class="status-message">No public repositories are available yet.</div>';
             return;
         }
 
         list.innerHTML = "";
-        items.forEach((item) => {
-            const isFolder = item.type === "dir";
+        sorted.forEach((repo) => {
+            const meta = [
+                repo.language || "Code",
+                `${Number(repo.stargazers_count || 0)} stars`,
+                `Updated ${formatDate(repo.pushed_at || repo.updated_at)}`
+            ].join(" | ");
+
             list.append(createBlogRow({
-                icon: isFolder ? "dir" : "md",
-                title: item.name.replace(/\.md$/i, ""),
-                meta: item.path,
-                kind: isFolder ? "folder" : "note",
-                onClick: () => {
-                    if (isFolder) {
-                        const nextPath = path ? `${path}/${item.name}` : item.name;
-                        loadBlogFolder(nextPath);
-                    } else {
-                        openMarkdownPost(item);
-                    }
-                }
+                icon: "repo",
+                title: repo.name,
+                meta,
+                kind: "public",
+                onClick: () => openRepoArticle(repo)
             }));
         });
-    }
-
-    async function renderFallbackPosts() {
-        const list = $("#blog-list");
-        if (!list) return;
-
-        renderBreadcrumbs("");
-
-        try {
-            const posts = cachedFallbackPosts.length ? cachedFallbackPosts : await fetchFallbackPosts();
-            cachedFallbackPosts = posts;
-            list.innerHTML = "";
-            posts.forEach((post) => {
-                list.append(createBlogRow({
-                    icon: "md",
-                    title: post.title,
-                    meta: `${post.readingTime || "note"} | ${post.date || "undated"}`,
-                    kind: "fallback",
-                    onClick: () => openFallbackPost(post)
-                }));
-            });
-        } catch (error) {
-            console.error("Local fallback failed:", error);
-            list.innerHTML = '<div class="status-message">No local fallback posts are available.</div>';
-        }
     }
 
     function createBlogRow({ icon, title, meta, kind, onClick }) {
@@ -297,49 +231,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return button;
     }
 
-    async function fetchFallbackPosts() {
-        const response = await fetch("posts/posts.json");
-        if (!response.ok) throw new Error(`posts.json ${response.status}`);
-        return response.json();
-    }
-
-    async function openMarkdownPost(item) {
-        setPost(item.name.replace(/\.md$/i, ""), `Markdown note | ${item.path}`);
+    async function openRepoArticle(repo) {
+        setPost(repo.name, `GitHub public repository | Updated ${formatDate(repo.pushed_at || repo.updated_at)}`);
         goTo("blog-post");
 
         try {
-            const response = await fetch(item.download_url);
-            if (!response.ok) throw new Error(`Markdown ${response.status}`);
+            const response = await fetch(`https://api.github.com/repos/${githubUser}/${repo.name}/readme`, {
+                headers: { Accept: "application/vnd.github.raw" }
+            });
+            if (!response.ok) throw new Error(`README ${response.status}`);
             renderMarkdown(await response.text());
         } catch (error) {
-            console.error("Markdown load failed:", error);
-            renderPostMessage("This note could not be loaded from GitHub right now.");
+            console.warn("README load failed:", error);
+            renderRepoSummary(repo);
         }
     }
 
-    function openFallbackPost(post) {
-        setPost(post.title, `${post.readingTime || "note"} | Published: ${post.date || "undated"}`);
-        goTo("blog-post");
+    function renderRepoSummary(repo) {
+        const content = $("#post-content");
+        if (!content) return;
 
-        if (post.markdown) {
-            renderMarkdown(post.markdown);
-            return;
-        }
-
-        if (post.hackmdUrl) {
-            const content = $("#post-content");
-            if (!content) return;
-
-            content.innerHTML = "";
-            const iframe = document.createElement("iframe");
-            iframe.src = post.hackmdUrl;
-            iframe.title = post.title;
-            iframe.loading = "lazy";
-            content.append(iframe);
-            return;
-        }
-
-        renderPostMessage("This fallback entry does not have Markdown content yet.");
+        const description = repo.description || "No repository description is available.";
+        content.innerHTML = `
+            <p>${escapeHtml(description)}</p>
+            <p>
+                <a href="${escapeHtml(repo.html_url)}" target="_blank" rel="noopener noreferrer">
+                    Open this public repository on GitHub
+                </a>
+            </p>
+        `;
     }
 
     function setPost(title, meta) {
@@ -357,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!titleElement || titleElement.textContent.trim()) return;
 
         setPost("Blog Post", "No note selected");
-        renderPostMessage("Open Blog and select a note to read.");
+        renderPostMessage("Open Blog and select a public repository to read.");
     }
 
     function renderMarkdown(markdown) {
@@ -399,13 +319,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function fetchRepos() {
+        if (cachedRepos) return cachedRepos;
+
         const url = `https://api.github.com/users/${githubUser}/repos?sort=pushed&per_page=100`;
         const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
 
         if (!response.ok) throw new Error(`GitHub API ${response.status}`);
 
         const repos = await response.json();
-        return Array.isArray(repos) ? repos.filter((repo) => !repo.fork) : [];
+        cachedRepos = Array.isArray(repos) ? repos.filter((repo) => !repo.fork && !repo.private) : [];
+        return cachedRepos;
     }
 
     function renderProjects(repos) {
@@ -496,10 +419,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!element) return;
         element.hidden = !message;
         element.textContent = message || "";
-    }
-
-    function encodePath(path) {
-        return path.split("/").map(encodeURIComponent).join("/");
     }
 
     function formatDate(value) {
