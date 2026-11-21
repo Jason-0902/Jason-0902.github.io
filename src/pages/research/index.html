@@ -1,0 +1,86 @@
+<!--meta {
+  "title": "Research | Jason Liu",
+  "description": "Undergraduate research on applying fuzz testing to Autoware, an open-source autonomous driving platform built on ROS 2.",
+  "nav": "research"
+} -->
+<header class="page-header">
+  <p class="eyebrow">Research</p>
+  <h1>Autoware Fuzzing for Autonomous Driving Systems</h1>
+  <p class="lead">
+    Undergraduate Research Project &middot; Chung Yuan Christian University &middot; December 2023 – April 2024
+  </p>
+  <p class="meta-line">Research Advisor: Dr. Hsiao-Rong Tyan</p>
+</header>
+
+<section class="section" aria-labelledby="overview-title">
+  <h2 id="overview-title">Overview</h2>
+  <div class="prose">
+    <p>
+      Investigated the feasibility of applying fuzz testing techniques to
+      <a href="https://autoware.org/">Autoware</a>, an open-source autonomous driving platform.
+    </p>
+    <p>
+      The project focused on understanding the technical challenges of testing complex ROS 2-based software components,
+      including API testability, software dependencies, and fuzzing integration.
+    </p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="activities-title">
+  <h2 id="activities-title">Research activities</h2>
+  <ul class="list">
+    <li>
+      Explored the feasibility of fuzz testing Autoware, examining API testability, ROS 2 integration, and build
+      dependencies.
+    </li>
+    <li>
+      Conducted libFuzzer experiments on a <code>motion_utils</code> deceleration-distance function using a harness that
+      converted generated inputs into six velocity, acceleration, and jerk parameters.
+    </li>
+    <li>
+      Investigated Autoware APIs and assessed input requirements and integration constraints for developing a custom
+      fuzzer.
+    </li>
+    <li>Used AddressSanitizer (ASan) to examine memory error reports in Autoware C++ components.</li>
+    <li>Collaborated on AFL++ experiments as part of a research team.</li>
+    <li>Configured and ran DriveFuzz on laboratory hardware, troubleshooting GPU driver and virtualization issues.</li>
+    <li>
+      Encountered computing resource and runtime constraints that limited full reproduction of previously reported
+      DriveFuzz results.
+    </li>
+  </ul>
+</section>
+
+<section class="section" aria-labelledby="tech-title">
+  <h2 id="tech-title">Technologies</h2>
+  <ul class="chips">
+    <li>C++</li>
+    <li>Python</li>
+    <li>ROS 2</li>
+    <li>Autoware</li>
+    <li>AFL++</li>
+    <li>libFuzzer</li>
+    <li>DriveFuzz</li>
+    <li>AddressSanitizer</li>
+    <li>Linux</li>
+  </ul>
+</section>
+
+<section class="section" aria-labelledby="outcome-title">
+  <h2 id="outcome-title">Outcome</h2>
+  <div class="prose">
+    <p>
+      Developed practical experience in configuring and evaluating fuzzing workflows for complex software systems,
+      identifying integration challenges and studying the feasibility of applying fuzzing techniques to autonomous
+      driving software.
+    </p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="award-title">
+  <h2 id="award-title">Award</h2>
+  <div class="card">
+    <h3>Honorable Mention</h3>
+    <p>Capstone Project Competition, Software and Network Category, Chung Yuan Christian University, April 2024.</p>
+  </div>
+</section>

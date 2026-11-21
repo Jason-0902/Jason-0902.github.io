@@ -1,0 +1,9 @@
+_site/
+content/
+node_modules/
+.lighthouseci/
+test-results/
+playwright-report/
+package-lock.json
+static/assets/
+.vscode/
