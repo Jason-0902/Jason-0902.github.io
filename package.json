@@ -1,0 +1,37 @@
+{
+  "name": "jason-0902.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal portfolio of Jason Liu (Tsung-Yen Liu), built as static HTML for GitHub Pages.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve": "node scripts/serve.mjs",
+    "lint": "npm run lint:js && npm run lint:format",
+    "lint:js": "eslint .",
+    "lint:format": "prettier --check .",
+    "format": "prettier --write .",
+    "validate:html": "html-validate \"_site/**/*.html\"",
+    "test:unit": "node --test \"tests/unit/**/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "links:internal": "node scripts/check-links.mjs",
+    "links:external": "node scripts/check-links.mjs --external",
+    "lighthouse": "lhci autorun",
+    "check": "npm run lint && npm run test:unit && npm run build && npm run validate:html && npm run links:internal && npm run test:e2e && npm run lighthouse"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
+    "@lhci/cli": "0.16.1",
+    "@playwright/test": "1.65.1",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "html-validate": "11.21.1",
+    "marked": "18.2.1",
+    "prettier": "3.10.1",
+    "sanitize-html": "2.18.2"
+  }
+}
