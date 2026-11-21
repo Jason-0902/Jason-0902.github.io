@@ -1,24 +1,5 @@
 [
   {
-    "slug": "wdf",
-    "name": "Web Dork Fuzzer (WDF)",
-    "category": "Security Tooling",
-    "status": null,
-    "summary": "A Go-based command-line security research tool focused on web discovery and automated testing workflows.",
-    "details": [
-      "WDF is a command-line tool written in Go for web discovery and automated testing workflows.",
-      "The project evolved from an earlier repository named web-dork-fuzzer, which is kept for history. WDF is the current version."
-    ],
-    "focus": [
-      "Command-line tool development",
-      "Web security testing workflows",
-      "URL-based input handling",
-      "Batch target processing"
-    ],
-    "tech": ["Go", "CLI Development", "Web Security"],
-    "repo": null
-  },
-  {
     "slug": "secure-chat",
     "name": "Secure Chat",
     "category": "Cryptography / Secure Application Development",

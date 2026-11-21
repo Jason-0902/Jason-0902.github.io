@@ -958,3 +958,301 @@ main > article > .section > h2::before {
 .align-right {
   text-align: right;
 }
+
+/* ------------------------------------------------------------------
+ * Motion. Every rule below is opt-in: either wrapped in
+ * prefers-reduced-motion: no-preference, or keyed on the .motion class
+ * that main.js only sets when that preference allows it.
+ * ------------------------------------------------------------------ */
+.site-header {
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.site-header.is-scrolled {
+  box-shadow: 0 8px 24px -18px rgb(0 0 0 / 60%);
+}
+
+/* Blinking caret after the name on the home page. */
+.hero h1::after {
+  content: "_";
+  content: "_" / "";
+  margin-left: 0.08em;
+  color: var(--accent);
+  font-weight: 400;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes slide {
+    from {
+      transform: translateY(14px);
+    }
+
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes drift {
+    from {
+      transform: translate3d(-4%, -3%, 0) scale(1);
+    }
+
+    to {
+      transform: translate3d(6%, 4%, 0) scale(1.12);
+    }
+  }
+
+  /* Hero entrance. Text that may be the LCP element only slides, it never starts transparent. */
+  .hero .eyebrow,
+  .hero .actions,
+  .hero .terminal,
+  .page-header > * {
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .hero h1,
+  .hero .headline,
+  .page-header > h1,
+  .page-header > .lead {
+    animation: slide 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .hero h1,
+  .page-header > :nth-child(2) {
+    animation-delay: 0.06s;
+  }
+
+  .hero .headline,
+  .page-header > :nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .hero .actions,
+  .page-header > :nth-child(n + 4) {
+    animation-delay: 0.18s;
+  }
+
+  .hero .terminal {
+    animation-delay: 0.22s;
+  }
+
+  .hero h1::after {
+    animation: blink 1.1s steps(1) infinite;
+  }
+
+  /* Slow ambient glow behind the hero. */
+  .hero {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -20% 0 auto auto;
+    width: min(42rem, 90vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, var(--bg-glow), transparent);
+    pointer-events: none;
+    animation: drift 14s ease-in-out infinite alternate;
+  }
+
+  /* Nav underline grows in. */
+  .site-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0.7rem;
+    right: 0.7rem;
+    bottom: 0.3rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transition: transform 0.25s ease;
+  }
+
+  .site-nav a:hover::after,
+  .site-nav a[aria-current="page"]::after {
+    transform: scaleX(1);
+  }
+
+  .site-nav a:not([aria-current="page"]):hover::after {
+    opacity: 0.45;
+  }
+
+  .button {
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background-color 0.18s ease;
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .button.primary::after,
+  .card-links a::after,
+  .post-list a::after {
+    transition: transform 0.2s ease;
+  }
+
+  .button.primary:hover::after,
+  .card-links a:hover::after,
+  .post-list a:hover::after {
+    transform: translateX(3px);
+  }
+
+  .section > .chips li {
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  .section > .chips li:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .post-list a {
+    transition: border-color 0.2s ease;
+  }
+
+  .timeline-item::before {
+    transition: background-color 0.25s ease;
+  }
+
+  .timeline-item:hover::before {
+    background: var(--accent);
+  }
+}
+
+/* Terminal typing (main.js sets .is-typing and per-line timings). */
+@keyframes type {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: calc(var(--chars) * 1ch);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.motion .terminal.is-typing dt {
+  width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: type var(--type-duration) steps(var(--chars), end) var(--type-delay) forwards;
+}
+
+.motion .terminal.is-typing dd {
+  opacity: 0;
+  animation: appear 0.3s ease var(--out-delay) forwards;
+}
+
+.motion .terminal.is-typing .terminal-body::after {
+  content: "$ \2588";
+  content: "$ \2588" / "";
+  display: block;
+  margin-top: 0.6rem;
+  color: var(--accent);
+  opacity: 0;
+  animation:
+    appear 0.2s ease var(--done-delay) forwards,
+    caret 1s steps(1) calc(var(--done-delay) + 0.2s) infinite;
+}
+
+/* Scroll reveal for blocks that start below the fold. */
+.motion .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--stagger, 0) * 80ms);
+}
+
+.motion .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Pointer spotlight: page background and cards. */
+.motion.has-spot body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    28rem circle at var(--spot-x) var(--spot-y),
+    color-mix(in srgb, var(--accent) 7%, transparent),
+    transparent 70%
+  );
+}
+
+.motion .card::after,
+.motion .post-list a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    18rem circle at var(--card-x, 50%) var(--card-y, 0%),
+    color-mix(in srgb, var(--accent) 10%, transparent),
+    transparent 65%
+  );
+  transition: opacity 0.3s ease;
+}
+
+.motion .post-list a {
+  position: relative;
+}
+
+.motion .card:hover::after,
+.motion .post-list a:hover::before {
+  opacity: 1;
+}

@@ -14,8 +14,9 @@ test("projects page lists every project with a working detail page", async ({ pa
     if (project.repo)
       await expect(card.getByRole("link", { name: "Repository" })).toHaveAttribute("href", project.repo);
   }
-  await page.getByRole("link", { name: "Web Dork Fuzzer (WDF)" }).click();
-  await expect(page.locator("h1")).toHaveText("Web Dork Fuzzer (WDF)");
+  const unpublished = projects.find((project) => !project.repo);
+  await page.getByRole("link", { name: unpublished.name, exact: true }).click();
+  await expect(page.locator("h1")).toHaveText(unpublished.name);
   await expect(page.getByText("The repository is not public yet.")).toBeVisible();
 });
 
