@@ -14,13 +14,14 @@ import {
   parsePage,
   renderNav,
   slugify,
+  validateProjects,
 } from "./lib/site.mjs";
+import { buildTree, folderFor } from "./lib/writeups.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = path.join(root, "_site");
 const writeupsDir = path.join(root, "content", "pwn-college-writeup");
 const writeupsRepo = "https://github.com/Jason-0902/Pwn-college-writeup";
-const writeupCategories = ["Reverse Engineering", "Web Security"];
 
 const urls = [];
 
@@ -50,10 +51,13 @@ async function main() {
   };
 
   const projects = JSON.parse(await readFile(path.join(root, "src", "data", "projects.json"), "utf8"));
+  validateProjects(projects);
   const writeups = await loadWriteups();
+  const blogFolders = JSON.parse(await readFile(path.join(root, "src", "data", "blog-folders.json"), "utf8"));
+  for (const post of writeups) post.folder = folderFor(post.category, blogFolders);
   const slots = {
     projectCards: projects.map(projectCard).join("\n"),
-    blogIndex: blogIndex(writeups),
+    blogIndex: blogIndex(buildTree(writeups, blogFolders)),
   };
 
   for (const file of await listFiles(path.join(root, "src", "pages"))) {
@@ -149,7 +153,6 @@ function projectPage(project) {
       `<a class="button" href="${escapeHtml(project.extraLink.href)}">${escapeHtml(project.extraLink.label)}</a>`,
     );
   }
-  if (!project.repo) links.push(`<p class="muted">The repository is not public yet.</p>`);
   const tech = project.tech.length
     ? `<section class="section" aria-labelledby="tech-title"><h2 id="tech-title">Technologies</h2>${chips(project.tech)}</section>`
     : "";
@@ -172,6 +175,22 @@ ${tech}
 <div class="actions">${links.join("")}</div>`;
 }
 
+// Every folder in the writeup repository (at any depth) that holds .md files becomes a category, so new folders
+// show up on the Blog without touching this script. Hidden folders (.git, .github) are skipped.
+async function discoverCategories(dir, prefix = []) {
+  const found = [];
+  const entries = (await readdir(dir, { withFileTypes: true })).sort((a, b) => naturalCompare(a.name, b.name));
+  if (prefix.length && entries.some((entry) => entry.isFile() && entry.name.endsWith(".md"))) {
+    found.push(prefix);
+  }
+  for (const entry of entries) {
+    if (entry.isDirectory() && !entry.name.startsWith(".")) {
+      found.push(...(await discoverCategories(path.join(dir, entry.name), [...prefix, entry.name])));
+    }
+  }
+  return found;
+}
+
 async function loadWriteups() {
   try {
     await stat(path.join(writeupsDir, "README.md"));
@@ -182,10 +201,15 @@ async function loadWriteups() {
   }
 
   const posts = [];
-  for (const category of writeupCategories) {
-    const categorySlug = slugify(category);
-    const dir = path.join(writeupsDir, category);
-    const names = (await readdir(dir)).sort(naturalCompare);
+  for (const segments of await discoverCategories(writeupsDir)) {
+    const category = segments.join(" / ");
+    const categorySlug = segments.map(slugify).join("/");
+    const dir = path.join(writeupsDir, ...segments);
+    const entries = await readdir(dir, { withFileTypes: true });
+    const names = entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+      .sort(naturalCompare);
     for (const name of names) {
       const source = path.join(dir, name);
       if (!name.endsWith(".md")) {
@@ -202,6 +226,7 @@ async function loadWriteups() {
       if (posts.some((post) => post.categorySlug === categorySlug && post.slug === slug)) {
         throw new Error(`Two writeups in "${category}" map to the same URL slug "${slug}". Rename one of them.`);
       }
+      const repoPath = [...segments, name].map(encodeURIComponent).join("/");
       posts.push({
         title,
         lang,
@@ -210,7 +235,7 @@ async function loadWriteups() {
         slug,
         url: `/blog/${categorySlug}/${slug}/`,
         outFile: `blog/${categorySlug}/${slug}/index.html`,
-        sourceUrl: `${writeupsRepo}/blob/main/${encodeURI(category)}/${encodeURI(name)}`,
+        sourceUrl: `${writeupsRepo}/blob/main/${repoPath}`,
         html: renderMarkdown(markdown, categorySlug),
       });
     }
@@ -218,24 +243,37 @@ async function loadWriteups() {
   return posts;
 }
 
-function blogIndex(posts) {
-  return writeupCategories
-    .map((category) => {
-      const items = posts.filter((post) => post.category === category);
-      const id = `${slugify(category)}-title`;
-      const list = items.map((post) => `<li><a href="${post.url}">${escapeHtml(post.title)}</a></li>`).join("\n    ");
-      return `<section class="section" aria-labelledby="${id}">
-  <h2 id="${id}">${escapeHtml(category)} <span class="count">${items.length}</span></h2>
-  <ul class="post-list">
-    ${list}
-  </ul>
-</section>`;
-    })
-    .join("\n");
+const fileLink = (post, label) =>
+  `<a class="file" href="${post.url}"${post.lang === "en" ? "" : ` hreflang="${post.lang}"`}>${escapeHtml(label)}</a>`;
+
+function blogIndex(tree) {
+  const challenge = ({ title, items }) =>
+    items.length === 1
+      ? `<li>${fileLink(items[0], items[0].title)}</li>`
+      : `<li><details class="folder">
+          <summary><span class="folder-name">${escapeHtml(title)}</span> <span class="count">${items.length}</span></summary>
+          <ul class="files">${items.map((item) => `<li>${fileLink(item, `${title} (${item.variant})`)}</li>`).join("")}</ul>
+        </details></li>`;
+  const category = ({ name, count, challenges }) => `<details class="folder" open id="${slugify(name)}">
+      <summary><h3 class="folder-name">${escapeHtml(name)}</h3> <span class="count">${count}</span></summary>
+      <ul class="files">
+        ${challenges.map(challenge).join("\n        ")}
+      </ul>
+    </details>`;
+  return `<div class="file-tree">
+${tree
+  .map(
+    (folder) => `  <details class="folder folder-root" open>
+    <summary><h2 class="folder-name">${escapeHtml(folder.name)}</h2> <span class="count">${folder.count}</span></summary>
+    ${folder.categories.map(category).join("\n    ")}
+  </details>`,
+  )
+  .join("\n")}
+</div>`;
 }
 
 function postPage(post) {
-  return `<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/blog/">Blog</a> / <span>${escapeHtml(post.category)}</span></nav>
+  return `<nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/blog/">Blog</a> / <span>${escapeHtml(post.folder)}</span> / <a href="/blog/#${slugify(post.category)}">${escapeHtml(post.category)}</a></nav>
 <article class="post"${post.lang === "en" ? "" : ` lang="${post.lang}"`}>
   <header class="page-header">
     <p class="eyebrow">pwn.college &middot; ${escapeHtml(post.category)}</p>

@@ -56,7 +56,7 @@
   // Anything already on screen at load is left alone, so nothing visible flickers and LCP is unaffected.
   if ("IntersectionObserver" in window) {
     const targets = document.querySelectorAll(
-      "main > .section, main > article > .section, .card-grid > .card, .timeline-item, .post-list > li",
+      "main > .section, main > article > .section, .card-grid > .card, .timeline-item, .folder-root",
     );
     const below = [...targets].filter((el) => el.getBoundingClientRect().top > window.innerHeight);
     const observer = new IntersectionObserver(
@@ -97,7 +97,7 @@
       },
       { passive: true },
     );
-    for (const card of document.querySelectorAll(".card, .post-list a")) {
+    for (const card of document.querySelectorAll(".card")) {
       card.addEventListener("pointermove", (event) => {
         const box = card.getBoundingClientRect();
         card.style.setProperty("--card-x", `${event.clientX - box.left}px`);

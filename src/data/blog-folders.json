@@ -1,0 +1,10 @@
+{
+  "_comment": "Writeup categories come from the folders of the writeup repository. Each one is filed under the first folder whose 'match' regex (case-insensitive) matches its name; anything else goes to 'fallback'.",
+  "folders": [
+    {
+      "name": "Security",
+      "match": "secur|revers|web|pwn|exploit|binary|crypt|forensic|malware|ctf|shellcode|sandbox|kernel|fuzz|vuln"
+    }
+  ],
+  "fallback": "Other"
+}

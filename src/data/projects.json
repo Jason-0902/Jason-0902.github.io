@@ -1,94 +1,20 @@
 [
   {
-    "slug": "secure-chat",
-    "name": "Secure Chat",
-    "category": "Cryptography / Secure Application Development",
-    "status": "In progress",
-    "summary": "An experimental secure messaging application combining a Flutter frontend, a Rust cryptographic core, and a lightweight Go backend.",
-    "details": [
-      "Secure Chat explores how an end-to-end encrypted messaging application can be structured across three languages: a Flutter client, a cryptographic core written in Rust, and a lightweight Go backend.",
-      "This is an experimental project under active development. It has not had a security audit and is not production-ready."
-    ],
-    "focus": [
-      "End-to-end encryption architecture",
-      "Cryptographic key exchange",
-      "Secure message processing",
-      "Client-server communication",
-      "Cross-language integration"
-    ],
-    "tech": ["Rust", "Go", "Flutter", "X25519", "ChaCha20-Poly1305"],
-    "repo": null
-  },
-  {
-    "slug": "writing-an-os-in-rust",
-    "name": "Writing an OS in Rust",
-    "category": "Systems Programming",
-    "status": "Ongoing learning project",
-    "summary": "An educational project exploring low-level systems programming and operating system development using Rust.",
-    "details": [
-      "A learning project that works through the fundamentals of operating system development in Rust, running on QEMU.",
-      "It is an ongoing learning project, not a complete or production operating system."
-    ],
-    "focus": [
-      "Bare-metal Rust programming",
-      "Boot processes",
-      "Memory management concepts",
-      "x86-64 architecture",
-      "Kernel development fundamentals"
-    ],
-    "tech": ["Rust", "x86-64", "QEMU"],
-    "repo": null
-  },
-  {
     "slug": "pwn-college-writeups",
     "name": "Pwn College Writeups",
-    "category": "Binary Exploitation / Reverse Engineering",
+    "category": "Learning notes",
     "status": null,
-    "summary": "A collection of technical writeups documenting practical cybersecurity challenges completed through pwn.college.",
+    "summary": "Personal learning notes and writeups from working through pwn.college challenges.",
     "details": [
-      "Each writeup records how a pwn.college challenge was approached: reading the challenge, analysing the program, debugging, and the lessons learned along the way.",
-      "The writeups aim to be reproducible explanations rather than flag dumps. They are also published on this site under Blog."
+      "Notes on how individual pwn.college challenges were approached, written while learning.",
+      "The writeups are also published on this site under Blog."
     ],
-    "focus": ["Linux fundamentals", "Binary analysis", "Reverse engineering", "Debugging", "CTF problem solving"],
-    "tech": ["C", "x86-64", "Python", "Web Security"],
+    "focus": ["Reverse engineering", "Web security", "Debugging"],
+    "tech": ["C", "x86-64", "Python"],
     "repo": "https://github.com/Jason-0902/Pwn-college-writeup",
     "extraLink": {
       "href": "/blog/",
       "label": "Read the writeups"
     }
-  },
-  {
-    "slug": "byte-scout",
-    "name": "Byte Scout",
-    "category": "Reverse Engineering / Security Education",
-    "status": "Experimental / In development",
-    "summary": "A personal learning-oriented command-line project intended to support binary analysis and reverse engineering workflows.",
-    "details": [
-      "Byte Scout is a Python command-line project built while learning binary analysis, intended to support reverse engineering workflows.",
-      "It is experimental and still in development."
-    ],
-    "focus": ["Binary analysis workflows", "Reverse engineering practice", "Command-line tooling"],
-    "tech": ["Python"],
-    "repo": null
-  },
-  {
-    "slug": "sentinelai",
-    "name": "SentinelAI",
-    "category": "AI Security / Security Automation",
-    "status": "Early-stage research and development",
-    "summary": "An experimental project exploring the feasibility of using lightweight AI agents to assist with cybersecurity monitoring and defensive security workflows.",
-    "details": [
-      "SentinelAI explores whether lightweight AI agents can assist people with cybersecurity monitoring and defensive security workflows.",
-      "It is an early-stage experiment. It is not a fully autonomous system and has not been deployed."
-    ],
-    "focus": [
-      "Security automation",
-      "AI agent architecture",
-      "Defensive security",
-      "Tool orchestration",
-      "Software validation"
-    ],
-    "tech": [],
-    "repo": null
   }
 ]
