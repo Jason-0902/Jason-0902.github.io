@@ -72,6 +72,13 @@ jobs:
           path: _site
           include-hidden-files: true
           retention-days: 7
+      # The Pages artifact is uploaded here, minutes before the deploy job reads it. Uploading it inside the deploy
+      # job raced GitHub's artifact API ("No artifacts named github-pages"), and re-running that job then produced a
+      # duplicate ("Multiple artifacts named github-pages"). Uploading once, early, avoids both.
+      - if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
       - name: Explain failure
         if: failure()
         run: echo "::error title=Build check failed::Run 'npm run build && npm run validate:html && npm run links:internal' locally. Missing writeups means 'git submodule update --init'."
@@ -157,7 +164,8 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Runs on pushes to main, and on a manual "Run workflow" from main to redeploy without a new commit.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [lint, unit, build, external-links, e2e, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -171,13 +179,6 @@ jobs:
       group: pages
       cancel-in-progress: false
     steps:
-      - uses: actions/download-artifact@v5
-        with:
-          name: site
-          path: _site
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
