@@ -1256,3 +1256,162 @@ main > article > .section > h2::before {
 .motion .post-list a:hover::before {
   opacity: 1;
 }
+
+/* Blog: folder tree built from the writeup repository's folders (native <details>, works without JS). */
+.file-tree {
+  display: grid;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.folder-root {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 0.4rem 0.9rem 0.6rem;
+}
+
+.folder > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-sm);
+  padding: 0 0.4rem;
+}
+
+.folder > summary::-webkit-details-marker {
+  display: none;
+}
+
+.folder > summary:hover {
+  background: var(--surface-2);
+}
+
+/* Chevron */
+.folder > summary::before {
+  content: "\25B8";
+  content: "\25B8" / "";
+  flex: none;
+  width: 0.8rem;
+  color: var(--muted);
+}
+
+.folder[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.folder-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+h2.folder-name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Folder icon: body plus tab, drawn in CSS. Filled while the folder is open. */
+.folder-name::before {
+  content: "";
+  flex: none;
+  width: 1.05rem;
+  height: 0.8rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 1px 3px 3px 3px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 0 / 45% 2px no-repeat,
+    transparent;
+}
+
+.folder[open] > summary .folder-name::before {
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 0 / 45% 2px no-repeat,
+    var(--accent-soft);
+}
+
+.folder .count {
+  margin-left: auto;
+}
+
+.folder .folder,
+.folder .files {
+  margin-left: 0.8rem;
+}
+
+.files {
+  list-style: none;
+  margin: 0 0 0.25rem 0.8rem;
+  padding: 0 0 0 0.9rem;
+  border-left: 1px dashed var(--border-strong);
+}
+
+.folder > .folder {
+  padding-left: 0.9rem;
+  border-left: 1px dashed var(--border-strong);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0 0.4rem;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* File icon */
+.file::before {
+  content: "";
+  flex: none;
+  width: 0.7rem;
+  height: 0.9rem;
+  border: 1.5px solid var(--muted);
+  border-radius: 1px 4px 1px 1px;
+}
+
+.file:hover {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.file:hover::before {
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .folder > summary::before {
+    transition: transform 0.2s ease;
+  }
+
+  @supports (interpolate-size: allow-keywords) {
+    .file-tree {
+      interpolate-size: allow-keywords;
+    }
+
+    .folder::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size 0.28s ease,
+        content-visibility 0.28s allow-discrete;
+    }
+
+    .folder[open]::details-content {
+      block-size: auto;
+    }
+  }
+}

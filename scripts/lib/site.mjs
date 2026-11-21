@@ -94,3 +94,18 @@ export function describeWriteup(fileStem, text) {
 export function naturalCompare(a, b) {
   return a.localeCompare(b, "en", { numeric: true, sensitivity: "base" });
 }
+
+const PUBLIC_REPO = /^https:\/\/github\.com\/Jason-0902\/[\w.-]+$/;
+
+/**
+ * Only projects backed by a public GitHub repository may be listed (Jason, 2026-11-21).
+ * The build fails on a project without one; the external link check then fails if that repository is private,
+ * because private repositories answer 404 to anonymous visitors.
+ */
+export function validateProjects(projects) {
+  const problems = projects
+    .filter((project) => typeof project.repo !== "string" || !PUBLIC_REPO.test(project.repo))
+    .map((project) => `${project.slug ?? "?"}: needs "repo" set to its public https://github.com/Jason-0902/... URL`);
+  if (problems.length) throw new Error(`Only projects with a public repository can be listed.\n${problems.join("\n")}`);
+  return projects;
+}
