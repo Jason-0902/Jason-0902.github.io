@@ -16,10 +16,7 @@ test("projects page lists every project with a working detail page", async ({ pa
   }
   await page.getByRole("link", { name: "Web Dork Fuzzer (WDF)" }).click();
   await expect(page.locator("h1")).toHaveText("Web Dork Fuzzer (WDF)");
-  await expect(page.getByRole("link", { name: "View repository" })).toHaveAttribute(
-    "href",
-    "https://github.com/Jason-0902/wdf",
-  );
+  await expect(page.getByText("The repository is not public yet.")).toBeVisible();
 });
 
 test("blog lists writeups by category and opens a rendered post", async ({ page }) => {

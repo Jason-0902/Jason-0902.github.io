@@ -16,7 +16,7 @@
       "Batch target processing"
     ],
     "tech": ["Go", "CLI Development", "Web Security"],
-    "repo": "https://github.com/Jason-0902/wdf"
+    "repo": null
   },
   {
     "slug": "secure-chat",
@@ -56,7 +56,7 @@
       "Kernel development fundamentals"
     ],
     "tech": ["Rust", "x86-64", "QEMU"],
-    "repo": "https://github.com/Jason-0902/Writing-an-OS-in-Rust-Learning-Project"
+    "repo": null
   },
   {
     "slug": "pwn-college-writeups",
