@@ -25,6 +25,9 @@ for (const { path, heading, nav } of MAIN_PAGES) {
 
     for (const theme of ["dark", "light"]) {
       test(`has no axe violations in ${theme} theme`, async ({ page }) => {
+        // Audit the settled page: mid-animation opacity would make contrast results timing-dependent, and blocks
+        // waiting for a scroll reveal would be skipped. motion.spec.mjs checks that animations settle to this state.
+        await page.emulateMedia({ reducedMotion: "reduce" });
         await page.addInitScript((value) => localStorage.setItem("theme", value), theme);
         await page.goto(path);
         await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
